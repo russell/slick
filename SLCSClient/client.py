@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2009 Victorian Partnership of Advanced Computing and
+# Copyright (c) 2009 Victorian Partnership for Advanced Computing and
 # Contributors.
 # All Rights Reserved.
 #
