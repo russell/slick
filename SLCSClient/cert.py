@@ -33,21 +33,47 @@ Att_map = {'extendedkeyusage': 'extendedKeyUsage',
            'subjectaltname': 'subjectAltName',
           }
 
-keyUsage = { 'DigitalSignature' : 'Digital Signature',
-            'KeyEncipherment' : 'Key Encipherment',
-           }
+multi_attrs ={ 'keyusage': { 'digitalsignature' : 'Digital Signature',
+                            'keyencipherment' : 'Key Encipherment',
+                           }
+              , 'extendedkeyusage' : { 'clientauth' : 'clientAuth', }
+             }
 
-extendedKeyUsage = { 'ClientAuth' : 'clientAuth',
-           }
+def parse_slcsResponse(response):
+    """
+    <?xml version="1.0" ?>
+    <SLCSLoginResponse>
+    <Status>Success</Status>
+    <AuthorizationToken>EKJH54HJKRT908YSEDJNQ23QLIUYIU2HWQWDB12IEGB12DAIKJAAPQ1</AuthorizationToken>
+    <CertificateRequest url="https://slcs1.arcs.org.au:443/SLCS/certificate">
+    <Subject>DC=slcs,DC=org,DC=au,O=Org,CN=Common Name Dlw349sKRMWOsokaA</Subject>
+    <CertificateExtension critical="false" name="ExtendedKeyUsage" oid="2.5.29.37">ClientAuth</CertificateExtension>
+    <CertificateExtension critical="true" name="KeyUsage" oid="2.5.29.15">DigitalSignature,KeyEncipherment</CertificateExtension>
+    <CertificateExtension critical="false" name="CertificatePolicies" oid="2.5.29.32">1.3.6.1.4.1.31863.1.0.1</CertificateExtension>
+    <CertificateExtension critical="false" name="SubjectAltName" oid="2.5.29.17">email:user@host.localdomain</CertificateExtension>
+    </CertificateRequest>
+    </SLCSLoginResponse>
 
+    """
+    slcsRespDOM = xml.dom.minidom.parse(response)
 
-def slcs(slcsResp, SLCS_URL):
-    slcsRespDOM = xml.dom.minidom.parse(slcsResp)
-
+    print slcsRespDOM.toxml()
     token = slcsRespDOM.getElementsByTagName("AuthorizationToken")[0].childNodes[0].data
     dn = slcsRespDOM.getElementsByTagName("Subject")[0].childNodes[0].data
-    reqURL = slcsRespDOM.getElementsByTagName("CertificateRequest")[0].childNodes[0].data
+    reqURL = slcsRespDOM.getElementsByTagName("CertificateRequest")[0].getAttribute('url')
+    elements = []
+    for e in slcsRespDOM.getElementsByTagName('CertificateExtension'):
+        name = str(e.getAttribute('name'))
+        critical = str(e.getAttribute('critical')) == 'true' or False
+        if name.lower() in multi_attrs:
+            value = ', '.join([multi_attrs[name.lower()][v.lower()] for v in e.childNodes[0].data.split(',')])
+        else:
+            value = str(e.childNodes[0].data)
+        elements.append({'name':name, 'critical':critical, 'value':value})
+    return token, dn, reqURL, elements
 
+
+def generate_certificate(dn, elements):
 
     # Generate keys
     log.info('Generating Key')
@@ -74,29 +100,18 @@ def slcs(slcsResp, SLCS_URL):
     req.set_subject_name(x509Name)
 
     extstack = X509.X509_Extension_Stack()
-    for e in slcsRespDOM.getElementsByTagName('CertificateExtension'):
-        name = str(e.getAttribute('name'))
-        critical = str(e.getAttribute('critical')) == 'true' or False
-        if name.lower() == 'keyusage':
-            value = ', '.join([keyUsage[v] for v in e.childNodes[0].data.split(',')])
-            extstack.push(X509.new_extension(Att_map[name.lower()], value,
-                                             critical=int(critical)))
-        elif name.lower() == 'extendedkeyusage':
-            value = ', '.join([extendedKeyUsage[v] for v in e.childNodes[0].data.split(',')])
-            extstack.push(X509.new_extension(Att_map[name.lower()], value,
-                                             critical=int(critical)))
-        else:
-            extstack.push(X509.new_extension(Att_map[name.lower()],
-                                             str(e.childNodes[0].data),
-                                             critical=int(critical)))
+    for e in elements:
+        name = e['name']
+        critical = e['critical']
+        extstack.push(X509.new_extension(Att_map[name.lower()],
+                                         e['value'],
+                                         critical=int(critical)))
     req.add_extensions(extstack)
     req.sign(pubKey, 'sha1')
 
-    # POST the Token and CertReq back to the slcs server
-    data = urlencode({'AuthorizationToken':token,'CertificateSigningRequest':req.as_pem()})
-    log.info('Request Signing by SLCS')
-    log.debug('POST: %s' % SLCS_URL)
-    certResp = urllib2.urlopen(SLCS_URL, data)
+    return (key, req, pubKey)
+
+def parse_slcsCertResponse(certResp):
     certRespDOM = xml.dom.minidom.parse(certResp)
     status = certRespDOM.getElementsByTagName("Status")[0].childNodes[0].data
     if status == 'Error':
@@ -106,6 +121,20 @@ def slcs(slcsResp, SLCS_URL):
         return
         #return ('Error - %s' % error, '<h1>%s</h1><pre>%s</pre>' % (error, stack))
 
-    #from ipdb import set_trace; set_trace()
     cert = certRespDOM.getElementsByTagName("Certificate")[0].childNodes[0].data
+    return cert
+
+
+def slcs(slcsResp):
+    token, dn, reqURL, elements = parse_slcsResponse(slcsResp)
+
+    key, req, pubKey = generate_certificate(dn, elements)
+
+    # POST the Token and CertReq back to the slcs server
+    data = urlencode({'AuthorizationToken':token,'CertificateSigningRequest':req.as_pem()})
+    log.info('Request Signing by SLCS')
+    log.debug('POST: %s' % reqURL)
+    certResp = urllib2.urlopen(reqURL, data)
+    cert = parse_slcsCertResponse(certResp)
     return key.as_pem(cipher=None), X509.load_cert_string(str(cert),X509.FORMAT_PEM).as_text()
+

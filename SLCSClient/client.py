@@ -33,7 +33,7 @@ from cert import slcs
 
 homedir = os.getenv('USERPROFILE') or os.getenv('HOME')
 
-spUri = "https://slcs1.arcs.org.au/SLCS/"
+spUri = "https://slcs1.arcs.org.au/SLCS/login"
 
 def terminal_dimensions():
     fd = os.open(os.ctermid(), os.O_RDONLY)
@@ -95,7 +95,7 @@ def main():
         log.addFilter(logging.Filter('slcs-client'))
         log.addHandler(log_handle)
 
-    # LIST idps
+    # List idps
     if options.list:
         log.debug("List IDPs")
         slcs_login_url = urlparse.urljoin(spUri, 'login')
@@ -117,12 +117,12 @@ def main():
                 print idp
 
 
+    # Cert cert using specific IdP
     if options.idp:
-        slcs_login_url = urlparse.urljoin(spUri, 'login')
+        slcs_login_url = spUri
         slcsresp = run(options.idp, slcs_login_url)
 
-        slcs_certificate_url = urlparse.urljoin(spUri, 'certificate')
-        key, cert = slcs(slcsresp, slcs_certificate_url)
+        key, cert = slcs(slcsresp)
         key_file = open(path.join(options.store_dir, 'userkey.pem'), 'w')
         key_file.write(key)
         key_file.close()
