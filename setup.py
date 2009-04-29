@@ -19,6 +19,7 @@ setup(name='slcs-client',
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
+          'M2Crypto',
       ],
       entry_points="""
       # -*- Entry points: -*-
