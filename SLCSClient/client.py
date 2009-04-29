@@ -25,6 +25,7 @@ import os
 from os import path
 import pprint
 import logging
+import struct, fcntl, termios
 
 from shibboleth import run, list_idps
 from cert import slcs
@@ -33,6 +34,12 @@ from cert import slcs
 homedir = os.getenv('USERPROFILE') or os.getenv('HOME')
 
 spUri = "https://slcs1.arcs.org.au/SLCS/"
+
+def terminal_dimensions():
+    fd = os.open(os.ctermid(), os.O_RDONLY)
+    if not os.isatty(fd):
+        return (0,0)
+    return struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
 
 parser = OptionParser()
 parser.add_option("-d", "--storedir", dest="store_dir",
@@ -95,9 +102,21 @@ def main():
         idps = list_idps(slcs_login_url)
         idp_keys = idps.keys()
         idp_keys.sort()
-        for idp in idp_keys:
-            print "   %s" % idp
-    #print run()
+        lmax = len(max(idps, key=len))
+        width = terminal_dimensions()[1]
+        if width:
+            col = width/lmax
+            i = 1
+            for idp in idp_keys:
+                print idp.ljust(lmax),
+                if not i%col:
+                    print('')
+                i = i + 1
+        else:
+            for idp in idp_keys:
+                print idp
+
+
     if options.idp:
         slcs_login_url = urlparse.urljoin(spUri, 'login')
         slcsresp = run(options.idp, slcs_login_url)
