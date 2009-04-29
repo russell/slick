@@ -57,7 +57,6 @@ def parse_slcsResponse(response):
     """
     slcsRespDOM = xml.dom.minidom.parse(response)
 
-    print slcsRespDOM.toxml()
     token = slcsRespDOM.getElementsByTagName("AuthorizationToken")[0].childNodes[0].data
     dn = slcsRespDOM.getElementsByTagName("Subject")[0].childNodes[0].data
     reqURL = slcsRespDOM.getElementsByTagName("CertificateRequest")[0].getAttribute('url')
@@ -66,7 +65,8 @@ def parse_slcsResponse(response):
         name = str(e.getAttribute('name'))
         critical = str(e.getAttribute('critical')) == 'true' or False
         if name.lower() in multi_attrs:
-            value = ', '.join([multi_attrs[name.lower()][v.lower()] for v in e.childNodes[0].data.split(',')])
+            value = ', '.join([multi_attrs[name.lower()][v.lower()]
+                               for v in e.childNodes[0].data.split(',')])
         else:
             value = str(e.childNodes[0].data)
         elements.append({'name':name, 'critical':critical, 'value':value})
