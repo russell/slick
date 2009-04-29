@@ -35,11 +35,29 @@ homedir = os.getenv('USERPROFILE') or os.getenv('HOME')
 
 spUri = "https://slcs1.arcs.org.au/SLCS/login"
 
+
 def terminal_dimensions():
     fd = os.open(os.ctermid(), os.O_RDONLY)
     if not os.isatty(fd):
         return (0,0)
     return struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
+
+
+def print_list_wide(items):
+    lmax = len(max(items, key=len))
+    width = terminal_dimensions()[1]
+    if width:
+        col = width/lmax
+        i = 1
+        for item in items:
+            print item.ljust(lmax),
+            if not i%col:
+                print('')
+            i = i + 1
+    else:
+        for item in items:
+            print item
+
 
 parser = OptionParser()
 parser.add_option("-d", "--storedir", dest="store_dir",
@@ -69,9 +87,11 @@ parser.add_option("", "--debug",
                   action="store_true",
                   help="print alot of messages to stdout")
 
+
 # Set up a specific logger with our desired output level
 log = logging.getLogger()
 log_handle = logging.StreamHandler()
+DEBUG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 
 
 def main():
@@ -89,11 +109,22 @@ def main():
 
     # Debug
     if options.debug:
-        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+        formatter = logging.Formatter(DEBUG_FORMAT)
         log_handle.setFormatter(formatter)
         log.setLevel(logging.DEBUG)
         log.addFilter(logging.Filter('slcs-client'))
         log.addHandler(log_handle)
+
+    if options.idp_search:
+        log.debug("List IDPs")
+        idp_search = options.idp_search.lower()
+        slcs_login_url = urlparse.urljoin(spUri, 'login')
+        idps = list_idps(slcs_login_url)
+        idps = dict(filter(lambda item: idp_search in item[0].lower(),
+                           idps.items()))
+        idp_keys = idps.keys()
+        idp_keys.sort()
+        print_list_wide(idp_keys)
 
     # List idps
     if options.list:
@@ -102,20 +133,7 @@ def main():
         idps = list_idps(slcs_login_url)
         idp_keys = idps.keys()
         idp_keys.sort()
-        lmax = len(max(idps, key=len))
-        width = terminal_dimensions()[1]
-        if width:
-            col = width/lmax
-            i = 1
-            for idp in idp_keys:
-                print idp.ljust(lmax),
-                if not i%col:
-                    print('')
-                i = i + 1
-        else:
-            for idp in idp_keys:
-                print idp
-
+        print_list_wide(idp_keys)
 
     # Cert cert using specific IdP
     if options.idp:

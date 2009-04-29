@@ -53,6 +53,7 @@ class SmartRedirectHandler(HTTPRedirectHandler, HTTPBasicAuthHandler, HTTPCookie
 cookiejar = cookielib.CookieJar()
 opener = urllib2.build_opener(SmartRedirectHandler(cookiejar=cookiejar))
 
+
 class FormParser(HTMLParser.HTMLParser):
     in_form = False
     in_origin = False
@@ -122,6 +123,7 @@ def submitIdpForm(opener, data, res):
     log.debug("POST: %s" % request.get_full_url())
     response = opener.open(request)
     return request, response
+
 
 def submitFormToSP(opener, data, res):
     headers = {

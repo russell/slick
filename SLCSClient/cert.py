@@ -39,6 +39,7 @@ multi_attrs ={ 'keyusage': { 'digitalsignature' : 'Digital Signature',
               , 'extendedkeyusage' : { 'clientauth' : 'clientAuth', }
              }
 
+
 def parse_slcsResponse(response):
     """
     <?xml version="1.0" ?>
@@ -57,9 +58,11 @@ def parse_slcsResponse(response):
     """
     slcsRespDOM = xml.dom.minidom.parse(response)
 
-    token = slcsRespDOM.getElementsByTagName("AuthorizationToken")[0].childNodes[0].data
+    token = slcsRespDOM.getElementsByTagName("AuthorizationToken")[0]\
+                       .childNodes[0].data
     dn = slcsRespDOM.getElementsByTagName("Subject")[0].childNodes[0].data
-    reqURL = slcsRespDOM.getElementsByTagName("CertificateRequest")[0].getAttribute('url')
+    reqURL = slcsRespDOM.getElementsByTagName("CertificateRequest")[0]\
+                        .getAttribute('url')
     elements = []
     for e in slcsRespDOM.getElementsByTagName('CertificateExtension'):
         name = str(e.getAttribute('name'))
@@ -111,17 +114,18 @@ def generate_certificate(dn, elements):
 
     return (key, req, pubKey)
 
-def parse_slcsCertResponse(certResp):
-    certRespDOM = xml.dom.minidom.parse(certResp)
-    status = certRespDOM.getElementsByTagName("Status")[0].childNodes[0].data
+
+def parse_slcsCertResponse(response):
+    dom = xml.dom.minidom.parse(response)
+    status = dom.getElementsByTagName("Status")[0].childNodes[0].data
     if status == 'Error':
-        error = certRespDOM.getElementsByTagName("Error")[0].childNodes[0].data
-        stack = certRespDOM.getElementsByTagName("StackTrace")[0].childNodes[0].data
+        error = dom.getElementsByTagName("Error")[0].childNodes[0].data
+        stack = dom.getElementsByTagName("StackTrace")[0].childNodes[0].data
+        log.error(error)
         log.error(stack)
         return
-        #return ('Error - %s' % error, '<h1>%s</h1><pre>%s</pre>' % (error, stack))
 
-    cert = certRespDOM.getElementsByTagName("Certificate")[0].childNodes[0].data
+    cert = dom.getElementsByTagName("Certificate")[0].childNodes[0].data
     return cert
 
 
@@ -131,10 +135,12 @@ def slcs(slcsResp):
     key, req, pubKey = generate_certificate(dn, elements)
 
     # POST the Token and CertReq back to the slcs server
-    data = urlencode({'AuthorizationToken':token,'CertificateSigningRequest':req.as_pem()})
+    data = urlencode({'AuthorizationToken':token,
+                      'CertificateSigningRequest':req.as_pem()})
     log.info('Request Signing by SLCS')
     log.debug('POST: %s' % reqURL)
     certResp = urllib2.urlopen(reqURL, data)
     cert = parse_slcsCertResponse(certResp)
-    return key.as_pem(cipher=None), X509.load_cert_string(str(cert),X509.FORMAT_PEM).as_text()
+    return key.as_pem(cipher=None), \
+           X509.load_cert_string(str(cert),X509.FORMAT_PEM).as_text()
 
