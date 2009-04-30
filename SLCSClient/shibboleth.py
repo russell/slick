@@ -19,11 +19,13 @@
 #
 ##############################################################################
 
-import urllib2, httplib, HTMLParser, urllib, cookielib
+import urllib2, httplib, urllib, cookielib
+from HTMLParser import HTMLParser
 from urllib2 import HTTPCookieProcessor, HTTPRedirectHandler, urlparse
 from urllib2 import HTTPBasicAuthHandler, AbstractBasicAuthHandler, BaseHandler
 from pprint import pprint
 import logging
+import re
 
 from getpass import getpass
 
@@ -37,30 +39,47 @@ class SmartRedirectHandler(HTTPRedirectHandler, HTTPBasicAuthHandler, HTTPCookie
         HTTPBasicAuthHandler.__init__(self)
         HTTPCookieProcessor.__init__(self, **kwargs)
 
-    def http_error_301(self, req, fp, code, msg, headers):
-        verbose.info("redirect")
-        result = urllib2.HTTPRedirectHandler.http_error_301(self, req, fp, code, msg, headers)
-        result.status = code
-        return result
-
     def http_error_302(self, req, fp, code, msg, headers):
         log.debug("GET %s" % req.get_full_url())
         verbose.info("redirect")
-        result = urllib2.HTTPRedirectHandler.http_error_302(self, req, fp, code, msg, headers)
+        result = HTTPRedirectHandler.http_error_302(self, req, fp, code, msg, headers)
         result.status = code
         return result
 
-cookiejar = cookielib.CookieJar()
-opener = urllib2.build_opener(SmartRedirectHandler(cookiejar=cookiejar))
+    http_error_301 = http_error_303 = http_error_307 = http_error_302
+
+    def http_error_401(self, req, fp, code, msg, headers):
+        url = req.get_full_url()
+        authline = headers.getheader('www-authenticate')
+        authobj = re.compile(
+            r'''(?:\s*www-authenticate\s*:)?\s*(\w*)\s+realm=['"]([^'"]+)['"]''',
+            re.IGNORECASE)
+        matchobj = authobj.match(authline)
+        realm = matchobj.group(2)
+        print realm
+        user = raw_input("Username:")
+        passwd = getpass("Password:")
+        self.add_password(realm=realm, uri=url, user=user, passwd=passwd)
+        return self.http_error_auth_reqed('www-authenticate',
+                                          url, req, headers)
 
 
-class FormParser(HTMLParser.HTMLParser):
-    in_form = False
-    in_origin = False
-    forms = []
-    data = {}
+
+class FormParser(HTMLParser):
+
+    def __init__(self):
+        HTMLParser.__init__(self)
+        self.in_title = False
+        self.in_form = False
+        self.in_origin = False
+        self.title = ''
+        self.forms = []
+        self.data = {}
+
     def handle_starttag(self, tag, attrs):
         self.origin_idp = None
+        if tag == "title":
+            self.in_title = True
         if tag == "form":
             if self.data:
                 self.data = {}
@@ -78,8 +97,12 @@ class FormParser(HTMLParser.HTMLParser):
     def handle_data(self, data):
         if self.in_form and self.in_origin and self.origin_idp and data.strip():
             self.data['origin'][data.strip()] = self.origin_idp[0][1]
+        if self.in_title:
+            self.title += data
 
     def handle_endtag(self, tag):
+        if tag == "title":
+            self.in_title = False
         if tag == "form":
             self.in_form = False
             self.forms.append(self.data)
@@ -91,7 +114,6 @@ def submitWayfForm(idp, opener, data, res):
     headers = {
     "Referer": res.url
     }
-    #httplib.HTTPConnection.debuglevel = 1
     #Set IDP to correct IDP
     wayf_data = {}
     wayf_data['origin'] = data['origin'][idp]
@@ -109,13 +131,14 @@ def submitWayfForm(idp, opener, data, res):
     return request, response
 
 
-def submitIdpForm(opener, data, res):
+def submitIdpForm(opener, title, data, res):
     headers = {
     "Referer": res.url
     }
     idp_data = {}
     url = urlparse.urljoin(res.url, data['form']['action'])
     log.info("Form Authentication from: %s" % url)
+    print title
     idp_data['j_username'] = raw_input("Username:")
     idp_data['j_password'] = getpass("Password:")
     data = urllib.urlencode(idp_data)
@@ -137,39 +160,57 @@ def submitFormToSP(opener, data, res):
     return request, response
 
 
+def whatForm(forms):
+    form_types = {'wayf': ['origin', 'providerId', 'shire', 'target', 'time'],
+                  'login': ['j_password', 'j_username'],
+                  'idp': ['SAMLResponse', 'TARGET'],
+    }
+
+    def match_form(form, type, items):
+        for i in items:
+            if i not in form.keys():
+                rtype = None
+                rform = None
+                break
+            rtype = type
+            rform = form
+        return rtype, rform
+
+    for form in forms:
+        for ft in form_types:
+            rtype,rform = match_form(form, ft, form_types[ft])
+            if rtype:
+                verbose.info(rtype)
+                return rtype,rform
+    return None, None
+
+
+
+
 def run(idp, spURL):
     cookiejar = cookielib.CookieJar()
     opener = urllib2.build_opener(SmartRedirectHandler(cookiejar=cookiejar))
     request = urllib2.Request(spURL)
-    #httplib.HTTPConnection.debuglevel = 1
     log.debug("GET: %s" % request.get_full_url())
     response = opener.open(request)
-    parser = FormParser()
-    for line in response:
-        parser.feed(line)
-    parser.close()
-    wayf_form = None
-    error = "Error unable to parse wayf"
-    for form in parser.forms:
-        if form.has_key('origin'):
-            error = "Error idp not in wayf"
-            if idp in form['origin'].keys():
-                wayf_form = form
-                break
-    if not wayf_form:
-        return error
-    request, response = submitWayfForm(idp, opener, wayf_form, response)
-    parser = FormParser()
-    for line in response:
-        parser.feed(line)
-    parser.close()
-    request, response = submitIdpForm(opener, parser.data, response)
-    for line in response:
-        parser.feed(line)
-    request, response = submitFormToSP(opener, parser.data, response)
-    return response
-    #opener.add_password(realm=realm, uri=uri, user=user, passwd=passwd)
-    #from ipdb import set_trace; set_trace()
+
+    slcsresp = None
+    while(not slcsresp):
+        parser = FormParser()
+        for line in response:
+            parser.feed(line)
+        parser.close()
+        type, form = whatForm(parser.forms)
+        if type == 'wayf':
+            request, response = submitWayfForm(idp, opener, form, response)
+            continue
+        if type == 'login':
+            request, response = submitIdpForm(opener, parser.title, form, response)
+            continue
+        if type == 'idp':
+            request, response = submitFormToSP(opener, form, response)
+            return response
+        return "ERROR"
 
 
 def list_idps(spURL):
@@ -180,7 +221,9 @@ def list_idps(spURL):
     parser = FormParser()
     for line in response:
         parser.feed(line)
-    for form in parser.forms:
-        if form.has_key('origin'):
-            return form['origin']
+    type, form = whatForm(parser.forms)
+    if type == 'wayf':
+        return form['origin']
+    return "ERROR"
+
 
