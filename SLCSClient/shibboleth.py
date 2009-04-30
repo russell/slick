@@ -27,7 +27,7 @@ from pprint import pprint
 import logging
 import re
 
-from getpass import getpass
+from passmgr import readpass
 
 log = logging.getLogger('slcs-client')
 verbose = logging.getLogger('slcs-client-verbose')
@@ -57,7 +57,7 @@ class SmartRedirectHandler(HTTPRedirectHandler, HTTPBasicAuthHandler, HTTPCookie
         realm = matchobj.group(2)
         print realm
         user = raw_input("Username:")
-        passwd = getpass("Password:")
+        passwd = readpass()
         self.add_password(realm=realm, uri=url, user=user, passwd=passwd)
         return self.http_error_auth_reqed('www-authenticate',
                                           url, req, headers)
@@ -139,7 +139,7 @@ def submitIdpForm(opener, title, data, res):
     log.info("Form Authentication from: %s" % url)
     print title
     idp_data['j_username'] = raw_input("Username:")
-    idp_data['j_password'] = getpass("Password:")
+    idp_data['j_password'] = readpass()
     data = urllib.urlencode(idp_data)
     request = urllib2.Request(url, data=data)
     verbose.info('Submitting login form')

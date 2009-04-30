@@ -141,6 +141,5 @@ def slcs(slcsResp):
     log.debug('POST: %s' % reqURL)
     certResp = urllib2.urlopen(reqURL, data)
     cert = parse_slcsCertResponse(certResp)
-    return key.as_pem(cipher=None), \
-           X509.load_cert_string(str(cert),X509.FORMAT_PEM).as_text()
+    return key, pubKey, X509.load_cert_string(str(cert),X509.FORMAT_PEM)
 

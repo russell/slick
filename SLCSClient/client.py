@@ -29,6 +29,7 @@ import struct, fcntl, termios
 
 from shibboleth import run, list_idps
 from cert import slcs
+from passmgr import getPassphrase
 
 
 homedir = os.getenv('USERPROFILE') or os.getenv('HOME')
@@ -142,14 +143,12 @@ def main():
         slcsresp = run(options.idp, slcs_login_url)
 
         verbose.info('Writing to files')
-        key, cert = slcs(slcsresp)
+        key, pubKey, cert = slcs(slcsresp)
         key_path = path.join(options.store_dir, 'userkey.pem')
-        key_file = open(path.join(options.store_dir, 'userkey.pem'), 'w')
-        key_file.write(key)
-        key_file.close()
+        key.save_pem(key_path, callback=getPassphrase)
         cert_path = path.join(options.store_dir, 'usercert.pem')
         cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')
-        cert_file.write(cert)
+        cert_file.write(cert.as_pem())
         cert_file.close()
         verbose.info('DONE')
         print "\nexport X509_USER_CERT=%s \nexport X509_USER_KEY=%s" % (cert_path, key_path)
