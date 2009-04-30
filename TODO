@@ -1,2 +1,2 @@
  - put passphrase on key
- - Basic Auth
+ - stop m2crypto printing output
