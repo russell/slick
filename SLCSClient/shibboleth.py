@@ -41,7 +41,6 @@ class SmartRedirectHandler(HTTPRedirectHandler, HTTPBasicAuthHandler, HTTPCookie
 
     def http_error_302(self, req, fp, code, msg, headers):
         log.debug("GET %s" % req.get_full_url())
-        verbose.info("redirect")
         result = HTTPRedirectHandler.http_error_302(self, req, fp, code, msg, headers)
         result.status = code
         return result
@@ -143,6 +142,7 @@ def submitIdpForm(opener, title, data, res):
     idp_data['j_password'] = getpass("Password:")
     data = urllib.urlencode(idp_data)
     request = urllib2.Request(url, data=data)
+    verbose.info('Submitting login form')
     log.debug("POST: %s" % request.get_full_url())
     response = opener.open(request)
     return request, response
@@ -180,11 +180,8 @@ def whatForm(forms):
         for ft in form_types:
             rtype,rform = match_form(form, ft, form_types[ft])
             if rtype:
-                verbose.info(rtype)
                 return rtype,rform
     return None, None
-
-
 
 
 def run(idp, spURL):
@@ -195,6 +192,7 @@ def run(idp, spURL):
     response = opener.open(request)
 
     slcsresp = None
+    tries = 0
     while(not slcsresp):
         parser = FormParser()
         for line in response:
@@ -202,15 +200,20 @@ def run(idp, spURL):
         parser.close()
         type, form = whatForm(parser.forms)
         if type == 'wayf':
+            verbose.info('Submitting form to wayf')
             request, response = submitWayfForm(idp, opener, form, response)
             continue
         if type == 'login':
+            if tries > 2:
+                raise Exception("Too Many Failed Attempts to Authenticate")
             request, response = submitIdpForm(opener, parser.title, form, response)
+            tries += 1
             continue
         if type == 'idp':
+            verbose.info('Submitting IdP SAML form')
             request, response = submitFormToSP(opener, form, response)
             return response
-        return "ERROR"
+        raise("Uknown error: Shibboleth auth chain lead to nowhere")
 
 
 def list_idps(spURL):
