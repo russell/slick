@@ -19,17 +19,29 @@
 #
 #############################################################################
 
-from getpass import getpass
 
 password = ''
 def readpass():
+    from getpass import getpass
     global password
     password = getpass("Password:")
     return password
 
+
 def getPassword():
     return password
 
+
 def getPassphrase(verify):
+    from getpass import getpass
+    while 1:
+        p1=getpass('Enter passphrase:')
+        p2=getpass('Verify passphrase:')
+        if p1==p2:
+            break
+    return p1
+
+
+def getPassphrase_noinput(verify):
     return password
 

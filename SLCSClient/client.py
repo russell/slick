@@ -29,7 +29,7 @@ import struct, fcntl, termios
 
 from shibboleth import run, list_idps
 from cert import slcs
-from passmgr import getPassphrase
+from passmgr import getPassphrase, getPassphrase_noinput
 
 
 homedir = os.getenv('USERPROFILE') or os.getenv('HOME')
@@ -145,7 +145,10 @@ def main():
         verbose.info('Writing to files')
         key, pubKey, cert = slcs(slcsresp)
         key_path = path.join(options.store_dir, 'userkey.pem')
-        key.save_pem(key_path, callback=getPassphrase)
+        if options.key:
+            key.save_pem(key_path, callback=getPassphrase)
+        else:
+            key.save_pem(key_path, callback=getPassphrase_noinput)
         cert_path = path.join(options.store_dir, 'usercert.pem')
         cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')
         cert_file.write(cert.as_pem())
