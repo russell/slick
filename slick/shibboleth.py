@@ -23,7 +23,6 @@ import urllib2, httplib, urllib, cookielib
 from HTMLParser import HTMLParser
 from urllib2 import HTTPCookieProcessor, HTTPRedirectHandler, urlparse
 from urllib2 import HTTPBasicAuthHandler, AbstractBasicAuthHandler, BaseHandler
-from pprint import pprint
 import logging
 import re
 
@@ -227,6 +226,6 @@ def list_idps(spURL):
     type, form = whatForm(parser.forms)
     if type == 'wayf':
         return form['origin']
-    return "ERROR"
+    raise("Uknown error: Shibboleth auth chain lead to nowhere")
 
 

@@ -125,6 +125,10 @@ def main():
             log.addFilter(logging.Filter('slcs-client'))
             log.addHandler(log_handle)
 
+        global spUri
+        if options.slcs:
+            spUri = options.slcs
+
         if options.idp_search:
             log.debug("List IDPs")
             idp_search = options.idp_search.lower()
