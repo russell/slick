@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2009 Victorian Partnership for Advanced Computing and
+# Copyright (c) 2009 Victorian Partnership for Advanced Computing Ltd and
 # Contributors.
 # All Rights Reserved.
 #
@@ -51,9 +51,10 @@ def print_list_wide(items):
         col = width/lmax
         i = 1
         for item in items:
-            print item.ljust(lmax),
             if not i%col:
-                print('')
+                print item
+            else:
+                print item.ljust(lmax),
             i = i + 1
     else:
         for item in items:
@@ -94,7 +95,7 @@ log = logging.getLogger()
 log_handle = logging.StreamHandler()
 DEBUG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 
-verbose = logging.getLogger('slcs-client-verbose')
+verbose = logging.getLogger('slick-client-verbose')
 
 def main():
 

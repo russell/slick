@@ -1,6 +1,7 @@
 ##############################################################################
 #
-# Copyright (c) 2009 Victorian Partnership for Advanced Computing and
+# Copyright (c) 2009 Victorian Partnership for Advanced Computing Ltd and
+# Contributors.
 # All Rights Reserved.
 #
 # This program is free software: you can redistribute it and/or modify
@@ -23,7 +24,7 @@ from M2Crypto import X509, RSA, EVP, m2
 import xml.dom.minidom
 import logging
 
-log = logging.getLogger('slcs-client')
+log = logging.getLogger('slick-client')
 
 MBSTRING_ASC  = 0x1000 | 1
 

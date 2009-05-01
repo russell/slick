@@ -3,7 +3,7 @@ import sys, os
 
 version = '0.1'
 
-setup(name='slcs-client',
+setup(name='slick',
       version=version,
       description="Client tools for slcs",
       long_description="""\
@@ -24,6 +24,6 @@ setup(name='slcs-client',
       entry_points="""
       # -*- Entry points: -*-
       [console_scripts]
-      slcs-client = SLCSClient.client:main
+      slick-init = slick.client:main
       """,
       )

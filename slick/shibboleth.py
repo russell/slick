@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2009 Victorian Partnership for Advanced Computing and
+# Copyright (c) 2009 Victorian Partnership for Advanced Computing Ltd and
 # Contributors.
 # All Rights Reserved.
 #
@@ -29,8 +29,8 @@ import re
 
 from passmgr import readpass
 
-log = logging.getLogger('slcs-client')
-verbose = logging.getLogger('slcs-client-verbose')
+log = logging.getLogger('slick-client')
+verbose = logging.getLogger('slick-client-verbose')
 
 
 class SmartRedirectHandler(HTTPRedirectHandler, HTTPBasicAuthHandler, HTTPCookieProcessor):
