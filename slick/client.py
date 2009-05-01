@@ -60,8 +60,9 @@ def print_list_wide(items):
         for item in items:
             print item
 
+usage = "usage: %prog [options] [idp]"
+parser = OptionParser(usage)
 
-parser = OptionParser()
 parser.add_option("-d", "--storedir", dest="store_dir",
                   help="find IdP(s) whose name or unique ID contain a \
                   specified string",
@@ -99,68 +100,72 @@ verbose = logging.getLogger('slick-client-verbose')
 
 def main():
 
-    (options, args) = parser.parse_args()
+    try:
+        (options, args) = parser.parse_args()
 
-    if len(sys.argv) == 1:
-        parser.print_help()
-        return
+        if len(sys.argv) == 1:
+            parser.print_help()
+            return
 
-    if not path.exists(options.store_dir):
-        os.mkdir(options.store_dir)
+        if not path.exists(options.store_dir):
+            os.mkdir(options.store_dir)
 
-    # Verbose
-    if options.verbose:
-        formatter = logging.Formatter("%(message)s")
-        log_handle.setFormatter(formatter)
-        log.setLevel(logging.INFO)
-        log.addHandler(log_handle)
+        # Verbose
+        if options.verbose:
+            formatter = logging.Formatter("%(message)s")
+            log_handle.setFormatter(formatter)
+            log.setLevel(logging.INFO)
+            log.addHandler(log_handle)
 
-    # Debug
-    if options.debug:
-        formatter = logging.Formatter(DEBUG_FORMAT)
-        log_handle.setFormatter(formatter)
-        log.setLevel(logging.DEBUG)
-        log.addFilter(logging.Filter('slcs-client'))
-        log.addHandler(log_handle)
+        # Debug
+        if options.debug:
+            formatter = logging.Formatter(DEBUG_FORMAT)
+            log_handle.setFormatter(formatter)
+            log.setLevel(logging.DEBUG)
+            log.addFilter(logging.Filter('slcs-client'))
+            log.addHandler(log_handle)
 
-    if options.idp_search:
-        log.debug("List IDPs")
-        idp_search = options.idp_search.lower()
-        slcs_login_url = urlparse.urljoin(spUri, 'login')
-        idps = list_idps(slcs_login_url)
-        idps = dict(filter(lambda item: idp_search in item[0].lower(),
-                           idps.items()))
-        idp_keys = idps.keys()
-        idp_keys.sort()
-        print_list_wide(idp_keys)
+        if options.idp_search:
+            log.debug("List IDPs")
+            idp_search = options.idp_search.lower()
+            slcs_login_url = urlparse.urljoin(spUri, 'login')
+            idps = list_idps(slcs_login_url)
+            idps = dict(filter(lambda item: idp_search in item[0].lower(),
+                               idps.items()))
+            idp_keys = idps.keys()
+            idp_keys.sort()
+            print_list_wide(idp_keys)
 
-    # List idps
-    if options.list:
-        log.debug("List IDPs")
-        slcs_login_url = urlparse.urljoin(spUri, 'login')
-        idps = list_idps(slcs_login_url)
-        idp_keys = idps.keys()
-        idp_keys.sort()
-        print_list_wide(idp_keys)
+        # List idps
+        if options.list:
+            log.debug("List IDPs")
+            slcs_login_url = urlparse.urljoin(spUri, 'login')
+            idps = list_idps(slcs_login_url)
+            idp_keys = idps.keys()
+            idp_keys.sort()
+            print_list_wide(idp_keys)
 
-    # Cert cert using specific IdP
-    if options.idp:
-        slcs_login_url = spUri
-        slcsresp = run(options.idp, slcs_login_url)
+        # Cert cert using specific IdP
+        if options.idp or args:
+            idp = options.idp or " ".join(args)
+            slcs_login_url = spUri
+            slcsresp = run(idp, slcs_login_url)
 
-        verbose.info('Writing to files')
-        key, pubKey, cert = slcs(slcsresp)
-        key_path = path.join(options.store_dir, 'userkey.pem')
-        if options.key:
-            key.save_pem(key_path, callback=getPassphrase)
-        else:
-            key.save_pem(key_path, callback=getPassphrase_noinput)
-        cert_path = path.join(options.store_dir, 'usercert.pem')
-        cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')
-        cert_file.write(cert.as_pem())
-        cert_file.close()
-        verbose.info('DONE')
-        print "\nexport X509_USER_CERT=%s \nexport X509_USER_KEY=%s" % (cert_path, key_path)
+            verbose.info('Writing to files')
+            key, pubKey, cert = slcs(slcsresp)
+            key_path = path.join(options.store_dir, 'userkey.pem')
+            if options.key:
+                key.save_pem(key_path, callback=getPassphrase)
+            else:
+                key.save_pem(key_path, callback=getPassphrase_noinput)
+            cert_path = path.join(options.store_dir, 'usercert.pem')
+            cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')
+            cert_file.write(cert.as_pem())
+            cert_file.close()
+            verbose.info('DONE')
+            print "\nexport X509_USER_CERT=%s \nexport X509_USER_KEY=%s" % (cert_path, key_path)
+    except KeyboardInterrupt:
+        print "\nCanceled"
 
 
 if __name__ == '__main__':
