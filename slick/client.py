@@ -25,6 +25,7 @@ import os, sys
 from os import path
 import pprint
 import logging
+import ConfigParser
 import struct, fcntl, termios
 
 from shibboleth import run, list_idps
@@ -82,7 +83,11 @@ parser.add_option("-l", "--list", action='store_true',
 parser.add_option("-s", "--slcs",
                   help="location of SLCS server (if not specified, use \
                   SLCS_SERVER system variable or settings from \
-                  slcs-client.properties")
+                  [storedir]/slcs-client.properties")
+parser.add_option("-w", "--write",
+                  action="store_true",
+                  help="write the arguments specified on the command line to \
+                  a config file")
 parser.add_option("-v", "--verbose",
                   action="store_true",
                   help="print status messages to stdout")
@@ -99,16 +104,19 @@ DEBUG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 verbose = logging.getLogger('slick-client-verbose')
 
 def main():
-
     try:
         (options, args) = parser.parse_args()
 
-        if len(sys.argv) == 1:
-            parser.print_help()
-            return
-
         if not path.exists(options.store_dir):
             os.mkdir(options.store_dir)
+
+        config = ConfigParser.ConfigParser()
+        configpath = path.join(options.store_dir, 'slcs-client.properties')
+        if path.exists(configpath):
+            config.read(configpath)
+        # add base section if it's missing
+        if not config.has_section('slcs'):
+            config.add_section('slcs')
 
         # Verbose
         if options.verbose:
@@ -125,9 +133,20 @@ def main():
             log.addFilter(logging.Filter('slcs-client'))
             log.addHandler(log_handle)
 
+        # Read SP urls
         global spUri
+        try:
+            spUri = config.get('slcs', 'url')
+        except ConfigParser.NoSectionError:
+            pass
+        except ConfigParser.NoOptionError:
+            pass
+
+        if os.environ.get('SLCS_SERVER'):
+            spUri = os.environ.get('SLCS_SERVER')
         if options.slcs:
             spUri = options.slcs
+            config.set('slcs', 'url', idp)
 
         if options.idp_search:
             log.debug("List IDPs")
@@ -139,6 +158,7 @@ def main():
             idp_keys = idps.keys()
             idp_keys.sort()
             print_list_wide(idp_keys)
+            return
 
         # List idps
         if options.list:
@@ -148,10 +168,19 @@ def main():
             idp_keys = idps.keys()
             idp_keys.sort()
             print_list_wide(idp_keys)
+            return
+
+        try:
+            config_idp = config.get('slcs', 'idp')
+        except ConfigParser.NoSectionError:
+            config_idp = None
+        except ConfigParser.NoOptionError:
+            config_idp = None
 
         # Cert cert using specific IdP
-        if options.idp or args:
-            idp = options.idp or " ".join(args)
+        if options.idp or args or config_idp:
+            idp = options.idp or " ".join(args) or config_idp
+            print "Using IdP: %s" % idp
             slcs_login_url = spUri
             slcsresp = run(idp, slcs_login_url)
 
@@ -167,10 +196,21 @@ def main():
             cert_file.write(cert.as_pem())
             cert_file.close()
             verbose.info('DONE')
+
+            if options.write:
+                verbose.info('Writing a config')
+                config.set('slcs', 'idp', idp)
+                configfile = open(configpath, 'wb')
+                config.write(configfile)
+
             print "\nexport X509_USER_CERT=%s \nexport X509_USER_KEY=%s" % (cert_path, key_path)
+            return
     except KeyboardInterrupt:
         print "\nCanceled"
+        return
 
+    if len(sys.argv) == 1:
+        parser.print_help()
 
 if __name__ == '__main__':
     main()
