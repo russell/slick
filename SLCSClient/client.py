@@ -21,7 +21,7 @@
 
 from optparse import OptionParser
 from urllib2 import urlparse
-import os
+import os, sys
 from os import path
 import pprint
 import logging
@@ -97,7 +97,12 @@ DEBUG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 verbose = logging.getLogger('slcs-client-verbose')
 
 def main():
+
     (options, args) = parser.parse_args()
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        return
 
     if not path.exists(options.store_dir):
         os.mkdir(options.store_dir)

@@ -3,3 +3,11 @@ Introduction
 
 
 This tool provides an easy way for users to retrieve their SLCS certificates from a SWITCH SLCS server.
+
+
+Install
+=======
+
+Ubuntu
+
+apt-get install python-setuptools python-m2crypto
