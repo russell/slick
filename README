@@ -9,8 +9,16 @@ Install
 =======
 
 Ubuntu
+------
 
 apt-get install python-setuptools python-m2crypto
+
+easy_install http://github.com/russell/slick/zipball/master#egg=slick
+
+Redhat
+------
+
+yum install m2crypto python-setuptools
 
 easy_install http://github.com/russell/slick/zipball/master#egg=slick
 
