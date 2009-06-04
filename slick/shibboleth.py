@@ -26,7 +26,6 @@ from urllib2 import HTTPBasicAuthHandler, AbstractBasicAuthHandler, BaseHandler
 import logging
 import re
 
-from passmgr import readpass
 
 log = logging.getLogger('slick-client')
 verbose = logging.getLogger('slick-client-verbose')
@@ -55,7 +54,8 @@ class SmartRedirectHandler(HTTPRedirectHandler, HTTPBasicAuthHandler, HTTPCookie
         matchobj = authobj.match(authline)
         realm = matchobj.group(2)
         print realm
-        user = raw_input("Username:")
+        from passmgr import readpass, readuser
+        user = readuser()
         passwd = readpass()
         self.add_password(realm=realm, uri=url, user=user, passwd=passwd)
         return self.http_error_auth_reqed('www-authenticate',
@@ -137,7 +137,8 @@ def submitIdpForm(opener, title, data, res):
     url = urlparse.urljoin(res.url, data['form']['action'])
     log.info("Form Authentication from: %s" % url)
     print title
-    idp_data['j_username'] = raw_input("Username:")
+    from passmgr import readpass, readuser
+    idp_data['j_username'] = readuser()
     idp_data['j_password'] = readpass()
     data = urllib.urlencode(idp_data)
     request = urllib2.Request(url, data=data)

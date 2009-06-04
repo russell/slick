@@ -27,6 +27,8 @@ def readpass():
     password = getpass("Password:")
     return password
 
+def readuser():
+    return raw_input("Username:")
 
 def getPassword():
     return password
