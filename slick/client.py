@@ -188,9 +188,9 @@ def main():
             key, pubKey, cert = slcs(slcsresp)
             key_path = path.join(options.store_dir, 'userkey.pem')
             if options.key:
-                key.save_pem(key_path, callback=getPassphrase)
+                key._key.save_pem(key_path, callback=getPassphrase)
             else:
-                key.save_pem(key_path, callback=getPassphrase_noinput)
+                key._key.save_pem(key_path, callback=getPassphrase_noinput)
             cert_path = path.join(options.store_dir, 'usercert.pem')
             cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')
             cert_file.write(cert.as_pem())

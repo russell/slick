@@ -20,25 +20,12 @@
 ##############################################################################
 from urllib import urlencode, unquote_plus
 import urllib2
-from M2Crypto import X509, RSA, EVP, m2
 import xml.dom.minidom
 import logging
+from arcs.gsi.certificate import CertificateRequest
+from M2Crypto import X509
 
 log = logging.getLogger('slick-client')
-
-MBSTRING_ASC  = 0x1000 | 1
-
-Att_map = {'extendedkeyusage': 'extendedKeyUsage',
-           'keyusage': 'keyUsage',
-           'certificatepolicies': 'certificatePolicies',
-           'subjectaltname': 'subjectAltName',
-          }
-
-multi_attrs ={ 'keyusage': { 'digitalsignature' : 'Digital Signature',
-                            'keyencipherment' : 'Key Encipherment',
-                           }
-              , 'extendedkeyusage' : { 'clientauth' : 'clientAuth', }
-             }
 
 
 def parse_slcsResponse(response):
@@ -68,52 +55,9 @@ def parse_slcsResponse(response):
     for e in slcsRespDOM.getElementsByTagName('CertificateExtension'):
         name = str(e.getAttribute('name'))
         critical = str(e.getAttribute('critical')) == 'true' or False
-        if name.lower() in multi_attrs:
-            value = ', '.join([multi_attrs[name.lower()][v.lower()]
-                               for v in e.childNodes[0].data.split(',')])
-        else:
-            value = str(e.childNodes[0].data)
+        value = str(e.childNodes[0].data)
         elements.append({'name':name, 'critical':critical, 'value':value})
     return token, dn, reqURL, elements
-
-
-def generate_certificate(dn, elements):
-
-    # Generate keys
-    log.info('Generating Key')
-    key = RSA.gen_key(2048, m2.RSA_F4)
-
-    # Create public key object
-    pubKey = EVP.PKey()
-    pubKey.assign_rsa(key)
-
-    log.info('Generating Certificate Request')
-    req = X509.Request()
-
-    # Add the public key to the request
-    req.set_version(0)
-    req.set_pubkey(pubKey)
-
-    # Set DN
-    x509Name = X509.X509_Name()
-    for entry in dn.split(','):
-        l = entry.split("=")
-        x509Name.add_entry_by_txt(field=str(l[0].strip()), type=MBSTRING_ASC,
-                                      entry=str(l[1]),len=-1, loc=-1, set=0)
-
-    req.set_subject_name(x509Name)
-
-    extstack = X509.X509_Extension_Stack()
-    for e in elements:
-        name = e['name']
-        critical = e['critical']
-        extstack.push(X509.new_extension(Att_map[name.lower()],
-                                         e['value'],
-                                         critical=int(critical)))
-    req.add_extensions(extstack)
-    req.sign(pubKey, 'sha1')
-
-    return (key, req, pubKey)
 
 
 def parse_slcsCertResponse(response):
@@ -133,14 +77,14 @@ def parse_slcsCertResponse(response):
 def slcs(slcsResp):
     token, dn, reqURL, elements = parse_slcsResponse(slcsResp)
 
-    key, req, pubKey = generate_certificate(dn, elements)
-
+    certreq = CertificateRequest(dn=str(dn), extensions=elements)
+    certreq.sign()
     # POST the Token and CertReq back to the slcs server
-    data = urlencode({'AuthorizationToken':token,
-                      'CertificateSigningRequest':req.as_pem()})
+    data = urlencode({'AuthorizationToken': token,
+                      'CertificateSigningRequest': repr(certreq)})
     log.info('Request Signing by SLCS')
     log.debug('POST: %s' % reqURL)
     certResp = urllib2.urlopen(reqURL, data)
     cert = parse_slcsCertResponse(certResp)
-    return key, pubKey, X509.load_cert_string(str(cert),X509.FORMAT_PEM)
+    return certreq.get_key(), certreq.get_pubkey(), X509.load_cert_string(str(cert),X509.FORMAT_PEM)
 

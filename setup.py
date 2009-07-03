@@ -20,6 +20,7 @@ setup(name='slick',
       install_requires=[
           # -*- Extra requirements: -*-
           'M2Crypto',
+          'arcs.gsi',
       ],
       entry_points="""
       # -*- Entry points: -*-
