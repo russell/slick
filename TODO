@@ -1,1 +1,2 @@
  - stop m2crypto printing output
+ - currently if the user doesn't enter a password into the callback, the key isn't written to disk. Either force an input or, fix bug preventing the key from being written.
