@@ -1,9 +1,49 @@
+
+.. contents::
+
 Introduction
 ============
 
-
 This tool provides an easy way for users to retrieve their SLCS certificates from a SWITCH SLCS server.
 
+Usage
+-----
+
+Usage::
+
+  $ slick-init --help
+  Usage: slick-init [options] [idp]
+  
+  Options:
+    -h, --help            show this help message and exit
+    -d DIR, --storedir=DIR
+                          find IdP(s) whose name or unique ID contain a
+                          specified string
+    -f SEARCHSTRING, --find=SEARCHSTRING
+                          find IdP(s) whose name or unique ID contain a
+                          specified string
+    -i IDP, --idp=IDP     unique ID of the IdP used to log in
+    -k, --key             prompt for key-passphrase (use Shibboleth password
+                          by default)
+    -l, --list            list all available IdP(s)
+    -s SLCS, --slcs=SLCS  location of SLCS server (if not specified, use
+                          SLCS_SERVER system variable or settings from
+                          [storedir]/slcs-client.properties
+    -w, --write           write the arguments specified on the command line to
+                          a config file
+    -v, --verbose         print status messages to stdout
+    --debug               print alot of messages to stdout
+
+
+Config File
+-----------
+
+The contents of a simple config file::
+
+  $ cat ~/slcs-client.properties
+  [slcs]
+  idp = VPAC
+  url = https://slcs1.arcs.org.au/SLCS/login
 
 Install
 =======
@@ -13,12 +53,12 @@ Ubuntu
 
 apt-get install python-setuptools python-m2crypto
 
-easy_install http://github.com/russell/slick/zipball/master#egg=slick
+easy_install --index-url http://code.arcs.org.au/pypi slick
 
 Redhat
 ------
 
 yum install m2crypto python-setuptools
 
-easy_install http://github.com/russell/slick/zipball/master#egg=slick
+easy_install --index-url http://code.arcs.org.au/pypi slick
 
