@@ -19,8 +19,10 @@
 #
 #############################################################################
 
-
+import os
 password = ''
+user_name = os.getenv('USERNAME')
+
 def readpass():
     from getpass import getpass
     global password
@@ -28,7 +30,7 @@ def readpass():
     return password
 
 def readuser():
-    return raw_input("Username:")
+    return raw_input("Username [%s]:" % user_name) or user_name
 
 def getPassword():
     return password
