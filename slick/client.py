@@ -89,12 +89,8 @@ parser.add_option("-w", "--write",
                   help="write the arguments specified on the command line to \
                   a config file")
 parser.add_option("-v", "--verbose",
-                  action="store_true",
+                  action="count",
                   help="print status messages to stdout")
-parser.add_option("", "--debug",
-                  action="store_true",
-                  help="print alot of messages to stdout")
-
 
 # Set up a specific logger with our desired output level
 log = logging.getLogger()
@@ -118,20 +114,21 @@ def main():
         if not config.has_section('slcs'):
             config.add_section('slcs')
 
-        # Verbose
-        if options.verbose:
-            formatter = logging.Formatter("%(message)s")
-            log_handle.setFormatter(formatter)
-            log.setLevel(logging.INFO)
-            log.addHandler(log_handle)
+        log_level = logging.WARNING # default
+        formatter = None
+        if options.verbose == 1:
+            formatter = "%(message)s"
+            log_level = logging.INFO
+        elif options.verbose >= 2:
+            formatter = DEBUG_FORMAT
+            log_level = logging.DEBUG
 
-        # Debug
-        if options.debug:
-            formatter = logging.Formatter(DEBUG_FORMAT)
-            log_handle.setFormatter(formatter)
-            log.setLevel(logging.DEBUG)
-            log.addFilter(logging.Filter('slcs-client'))
-            log.addHandler(log_handle)
+        # Set up basic configuration, out to stderr with a reasonable default format.
+        if formatter:
+            logging.basicConfig(level=log_level, format=formatter)
+        else:
+            logging.basicConfig(level=log_level)
+
 
         # Read SP urls
         global spUri
