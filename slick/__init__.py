@@ -1,3 +1,3 @@
 #
-import shibboleth, cert, passmgr
+import shibboleth, cert, passmgr, settings
 

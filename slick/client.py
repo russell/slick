@@ -31,7 +31,7 @@ import struct, fcntl, termios
 from shibboleth import run, list_idps
 from cert import slcs
 from passmgr import getPassphrase, getPassphrase_noinput
-
+from settings import Settings, settings_options
 
 homedir = os.getenv('USERPROFILE') or os.getenv('HOME')
 
@@ -64,26 +64,16 @@ def print_list_wide(items):
 usage = "usage: %prog [options] [idp]"
 parser = OptionParser(usage)
 
-parser.add_option("-d", "--storedir", dest="store_dir",
-                  help="find IdP(s) whose name or unique ID contain a \
-                  specified string",
-                  metavar="DIR",
-                  default=path.join(homedir, ".globus-slcs"))
+settings_options(parser)
 parser.add_option("-f", "--find", dest="idp_search",
                   help="find IdP(s) whose name or unique ID contain a \
                   specified string",
                   metavar="SEARCHSTRING")
-parser.add_option("-i", "--idp",
-                  help="unique ID of the IdP used to log in")
 parser.add_option("-k", "--key", action='store_true',
                   help="prompt for key-passphrase (use Shibboleth password \
                   by default)")
 parser.add_option("-l", "--list", action='store_true',
                   help="list all available IdP(s)")
-parser.add_option("-s", "--slcs",
-                  help="location of SLCS server (if not specified, use \
-                  SLCS_SERVER system variable or settings from \
-                  [storedir]/slcs-client.properties")
 parser.add_option("-w", "--write",
                   action="store_true",
                   help="write the arguments specified on the command line to \
@@ -106,16 +96,8 @@ def main():
         if not path.exists(options.store_dir):
             os.mkdir(options.store_dir)
 
-        config = ConfigParser.ConfigParser()
-        configpath = path.join(options.store_dir, 'slcs-client.properties')
-        if path.exists(configpath):
-            config.read(configpath)
-        # add base section if it's missing
-        if not config.has_section('slcs'):
-            config.add_section('slcs')
-
-        log_level = logging.WARNING # default
         formatter = None
+        log_level = logging.WARNING # default
         if options.verbose == 1:
             formatter = "%(message)s"
             log_level = logging.INFO
@@ -129,21 +111,9 @@ def main():
         else:
             logging.basicConfig(level=log_level)
 
-
-        # Read SP urls
-        global spUri
-        try:
-            spUri = config.get('slcs', 'url')
-        except ConfigParser.NoSectionError:
-            pass
-        except ConfigParser.NoOptionError:
-            pass
-
-        if os.environ.get('SLCS_SERVER'):
-            spUri = os.environ.get('SLCS_SERVER')
-        if options.slcs:
-            spUri = options.slcs
-            config.set('slcs', 'url', idp)
+        settings = Settings(options)
+        spUri = settings.slcs
+        config_idp = settings.idp
 
         if options.idp_search:
             log.debug("List IDPs")
@@ -167,16 +137,9 @@ def main():
             print_list_wide(idp_keys)
             return
 
-        try:
-            config_idp = config.get('slcs', 'idp')
-        except ConfigParser.NoSectionError:
-            config_idp = None
-        except ConfigParser.NoOptionError:
-            config_idp = None
-
         # Cert cert using specific IdP
-        if options.idp or args or config_idp:
-            idp = options.idp or " ".join(args) or config_idp
+        if args or config_idp:
+            idp = " ".join(args) or config_idp
             print "Using IdP: %s" % idp
             slcs_login_url = spUri
             slcsresp = run(idp, slcs_login_url)
@@ -198,9 +161,7 @@ def main():
 
             if options.write:
                 verbose.info('Writing a config')
-                config.set('slcs', 'idp', idp)
-                configfile = open(configpath, 'wb')
-                config.write(configfile)
+                settings.save()
 
             print "\nexport X509_USER_CERT=%s \nexport X509_USER_KEY=%s" % (cert_path, key_path)
             return
