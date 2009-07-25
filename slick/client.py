@@ -30,7 +30,7 @@ import struct, fcntl, termios
 
 from shibboleth import run, list_idps
 from cert import slcs
-from passmgr import getPassphrase, getPassphrase_noinput
+from passmgr import CredentialManager
 from settings import Settings, settings_options
 
 homedir = os.getenv('USERPROFILE') or os.getenv('HOME')
@@ -141,15 +141,20 @@ def main():
             idp = " ".join(args) or config_idp
             print "Using IdP: %s" % idp
             slcs_login_url = spUri
-            slcsresp = run(idp, slcs_login_url)
+            c = CredentialManager()
+            slcsresp = run(idp, slcs_login_url, c)
 
             log.info('Writing to files')
             key, pubKey, cert = slcs(slcsresp)
             key_path = path.join(options.store_dir, 'userkey.pem')
             if options.key:
-                key._key.save_pem(key_path, callback=getPassphrase)
+                key._key.save_pem(key_path,
+                                  callback=c.set_password)
             else:
-                key._key.save_pem(key_path, callback=getPassphrase_noinput)
+                def callback(verify=False):
+                    return c.get_password()
+
+                key._key.save_pem(key_path, callback=callback)
             os.chmod(key_path, 0600)
             cert_path = path.join(options.store_dir, 'usercert.pem')
             cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')

@@ -19,10 +19,10 @@
 #
 ##############################################################################
 
-import urllib2, httplib, urllib, cookielib
+import urllib2, urllib, cookielib
 from HTMLParser import HTMLParser
 from urllib2 import HTTPCookieProcessor, HTTPRedirectHandler, urlparse
-from urllib2 import HTTPBasicAuthHandler, AbstractBasicAuthHandler, BaseHandler
+from urllib2 import HTTPBasicAuthHandler
 import logging
 import re
 
@@ -32,9 +32,10 @@ log = logging.getLogger('slick-client')
 
 class SmartRedirectHandler(HTTPRedirectHandler, HTTPBasicAuthHandler, HTTPCookieProcessor):
 
-    def __init__(self, **kwargs):
+    def __init__(self, credentialmanager=None, **kwargs):
         HTTPBasicAuthHandler.__init__(self)
         HTTPCookieProcessor.__init__(self, **kwargs)
+        self.credentialmanager = credentialmanager
 
     def http_error_302(self, req, fp, code, msg, headers):
         log.debug("GET %s" % req.get_full_url())
@@ -52,10 +53,10 @@ class SmartRedirectHandler(HTTPRedirectHandler, HTTPBasicAuthHandler, HTTPCookie
             re.IGNORECASE)
         matchobj = authobj.match(authline)
         realm = matchobj.group(2)
-        print realm
-        from passmgr import readpass, readuser
-        user = readuser()
-        passwd = readpass()
+        self.credentialmanager.print_realm(realm)
+        user = self.credentialmanager.get_username()
+        self.credentialmanager.set_password()
+        passwd = self.credentialmanager.get_password()
         self.add_password(realm=realm, uri=url, user=user, passwd=passwd)
         return self.http_error_auth_reqed('www-authenticate',
                                           url, req, headers)
@@ -128,17 +129,17 @@ def submitWayfForm(idp, opener, data, res):
     return request, response
 
 
-def submitIdpForm(opener, title, data, res):
+def submitIdpForm(opener, title, data, res, cm):
     headers = {
     "Referer": res.url
     }
     idp_data = {}
     url = urlparse.urljoin(res.url, data['form']['action'])
     log.info("Form Authentication from: %s" % url)
-    print title
-    from passmgr import readpass, readuser
-    idp_data['j_username'] = readuser()
-    idp_data['j_password'] = readpass()
+    cm.print_realm(title)
+    idp_data['j_username'] = cm.get_username()
+    cm.set_password()
+    idp_data['j_password'] = cm.get_password()
     data = urllib.urlencode(idp_data)
     request = urllib2.Request(url, data=data)
     log.info('Submitting login form')
@@ -183,9 +184,9 @@ def whatForm(forms):
     return None, None
 
 
-def run(idp, spURL):
+def run(idp, spURL, cm):
     cookiejar = cookielib.CookieJar()
-    opener = urllib2.build_opener(SmartRedirectHandler(cookiejar=cookiejar))
+    opener = urllib2.build_opener(SmartRedirectHandler(credentialmanager=cm, cookiejar=cookiejar))
     request = urllib2.Request(spURL)
     log.debug("GET: %s" % request.get_full_url())
     response = opener.open(request)
@@ -205,7 +206,7 @@ def run(idp, spURL):
         if type == 'login':
             if tries > 2:
                 raise Exception("Too Many Failed Attempts to Authenticate")
-            request, response = submitIdpForm(opener, parser.title, form, response)
+            request, response = submitIdpForm(opener, parser.title, form, response, cm)
             tries += 1
             continue
         if type == 'idp':

@@ -20,32 +20,46 @@
 #############################################################################
 
 import os
-password = ''
-user_name = os.getenv('USERNAME')
+from getpass import getpass
 
-def readpass():
-    from getpass import getpass
-    global password
-    password = getpass("Password:")
-    return password
+class CredentialManager:
 
-def readuser():
-    return raw_input("Username [%s]:" % user_name) or user_name
+    def __init__(self):
+        self.username = None
+        self.password = None
 
-def getPassword():
-    return password
+    def get_password(self):
+        if not self.password:
+            self.set_password()
+        return self.password
 
+    def set_password(self, verify=False):
+        if verify:
+            while 1:
+                p1=getpass('Enter password:')
+                p2=getpass('Verify password:')
+                if p1==p2:
+                    self.password = p1
+                    break
+        else:
+            self.password = getpass("Password:")
+        return self.password
 
-def getPassphrase(verify):
-    from getpass import getpass
-    while 1:
-        p1=getpass('Enter passphrase:')
-        p2=getpass('Verify passphrase:')
-        if p1==p2:
-            break
-    return p1
+    def set_username(self):
+        if not self.username:
+            user_name = os.getenv('USERNAME') or os.getenv('LOGNAME')
+            self.username = raw_input("Username [%s]:" % user_name) or user_name
+        return self.username
 
+    def get_username(self):
+        if not self.username:
+            self.set_username()
+        return self.username
 
-def getPassphrase_noinput(verify):
-    return password
+    def print_realm(self, realm):
+        print(realm)
+
+    def reset(self):
+        self.username = None
+        self.password = None
 
