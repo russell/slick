@@ -83,11 +83,10 @@ parser.add_option("-v", "--verbose",
                   help="print status messages to stdout")
 
 # Set up a specific logger with our desired output level
-log = logging.getLogger()
+log = logging.getLogger('slick-client')
 log_handle = logging.StreamHandler()
 DEBUG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 
-verbose = logging.getLogger('slick-client-verbose')
 
 def main():
     try:
@@ -144,7 +143,7 @@ def main():
             slcs_login_url = spUri
             slcsresp = run(idp, slcs_login_url)
 
-            verbose.info('Writing to files')
+            log.info('Writing to files')
             key, pubKey, cert = slcs(slcsresp)
             key_path = path.join(options.store_dir, 'userkey.pem')
             if options.key:
@@ -156,11 +155,10 @@ def main():
             cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')
             cert_file.write(cert.as_pem())
             cert_file.close()
-            verbose.info('DONE')
             os.chmod(cert_path, 0644)
 
             if options.write:
-                verbose.info('Writing a config')
+                log.info('Writing a config')
                 settings.save()
 
             print "\nexport X509_USER_CERT=%s \nexport X509_USER_KEY=%s" % (cert_path, key_path)

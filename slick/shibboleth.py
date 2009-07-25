@@ -28,7 +28,6 @@ import re
 
 
 log = logging.getLogger('slick-client')
-verbose = logging.getLogger('slick-client-verbose')
 
 
 class SmartRedirectHandler(HTTPRedirectHandler, HTTPBasicAuthHandler, HTTPCookieProcessor):
@@ -142,7 +141,7 @@ def submitIdpForm(opener, title, data, res):
     idp_data['j_password'] = readpass()
     data = urllib.urlencode(idp_data)
     request = urllib2.Request(url, data=data)
-    verbose.info('Submitting login form')
+    log.info('Submitting login form')
     log.debug("POST: %s" % request.get_full_url())
     response = opener.open(request)
     return request, response
@@ -200,7 +199,7 @@ def run(idp, spURL):
         parser.close()
         type, form = whatForm(parser.forms)
         if type == 'wayf':
-            verbose.info('Submitting form to wayf')
+            log.info('Submitting form to wayf')
             request, response = submitWayfForm(idp, opener, form, response)
             continue
         if type == 'login':
@@ -210,7 +209,7 @@ def run(idp, spURL):
             tries += 1
             continue
         if type == 'idp':
-            verbose.info('Submitting IdP SAML form')
+            log.info('Submitting IdP SAML form')
             request, response = submitFormToSP(opener, form, response)
             return response
         raise("Uknown error: Shibboleth auth chain lead to nowhere")
