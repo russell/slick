@@ -17,22 +17,22 @@ Usage::
   Options:
     -h, --help            show this help message and exit
     -d DIR, --storedir=DIR
-                          find IdP(s) whose name or unique ID contain a
-                          specified string
-    -f SEARCHSTRING, --find=SEARCHSTRING
-                          find IdP(s) whose name or unique ID contain a
-                          specified string
+                          the directory to store the certificate/key and
+                          config file
     -i IDP, --idp=IDP     unique ID of the IdP used to log in
-    -k, --key             prompt for key-passphrase (use Shibboleth password
-                          by default)
-    -l, --list            list all available IdP(s)
     -s SLCS, --slcs=SLCS  location of SLCS server (if not specified, use
                           SLCS_SERVER system variable or settings from
                           [storedir]/slcs-client.properties
+    -f SEARCHSTRING, --find=SEARCHSTRING
+                          find IdP(s) whose name or unique ID contain a
+                          specified string
+    -k, --key             prompt for key-passphrase (use Shibboleth password
+                          by default)
+    -l, --list            list all available IdP(s)
     -w, --write           write the arguments specified on the command line to
                           a config file
     -v, --verbose         print status messages to stdout
-    --debug               print alot of messages to stdout
+
 
 
 Config File

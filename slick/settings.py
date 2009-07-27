@@ -31,8 +31,8 @@ store_dir = path.join(homedir, ".globus-slcs")
 def settings_options(parser):
     """adds extra options to the optparser"""
     parser.add_option("-d", "--storedir", dest="store_dir",
-                      help="find IdP(s) whose name or unique ID contain a \
-                      specified string",
+                      help="the directory to store the certificate/key and \
+                      config file",
                       metavar="DIR",
                       default=path.join(homedir, ".globus-slcs"))
     parser.add_option("-i", "--idp",
