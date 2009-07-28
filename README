@@ -53,12 +53,12 @@ Ubuntu
 
 apt-get install python-setuptools python-m2crypto
 
-easy_install --index-url http://code.arcs.org.au/pypi slick
+easy_install --index-url http://code.arcs.org.au/pypi/ slick
 
 Redhat
 ------
 
 yum install m2crypto python-setuptools
 
-easy_install --index-url http://code.arcs.org.au/pypi slick
+easy_install --index-url http://code.arcs.org.au/pypi/ slick
 
