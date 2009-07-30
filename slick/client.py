@@ -191,6 +191,7 @@ def main():
                 key._key.save_pem(key_path, callback=getPassphrase)
             else:
                 key._key.save_pem(key_path, callback=getPassphrase_noinput)
+            os.chmod(key_path, 0600)
             cert_path = path.join(options.store_dir, 'usercert.pem')
             cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')
             cert_file.write(cert.as_pem())
