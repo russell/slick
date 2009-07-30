@@ -46,7 +46,7 @@ def terminal_dimensions():
 
 
 def print_list_wide(items):
-    lmax = len(max(items, key=len))
+    lmax = max([len(x) for x in items]) + 1
     width = terminal_dimensions()[1]
     if width:
         col = width/lmax
