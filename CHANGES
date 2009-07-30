@@ -4,6 +4,7 @@ Changelog
 1.2 (2009-07-31)
 ----------------
 * Key is now stored with the mode 0600
+* Certificate is now stored with the mode 0644
 * updated README
 
 

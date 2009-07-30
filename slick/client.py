@@ -197,6 +197,7 @@ def main():
             cert_file.write(cert.as_pem())
             cert_file.close()
             verbose.info('DONE')
+            os.chmod(cert_path, 0644)
 
             if options.write:
                 verbose.info('Writing a config')
