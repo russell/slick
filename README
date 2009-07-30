@@ -50,15 +50,37 @@ Install
 
 Ubuntu
 ------
+::
 
-apt-get install python-setuptools python-m2crypto
+  apt-get install python-setuptools python-m2crypto
 
-easy_install --index-url http://code.arcs.org.au/pypi/ slick
+  easy_install --index-url http://code.arcs.org.au/pypi/ slick
 
-Redhat
-------
+Centos5
+-------
 
-yum install m2crypto python-setuptools
+::
 
-easy_install --index-url http://code.arcs.org.au/pypi/ slick
+  $ yum install python-setuptools swig openssl-devel gcc subversion
+
+  $ sudo easy_install virtualenv
+  $ virtualenv slick
+  $ cd slick
+
+Once we activate the virtual envionment the PATH will be changed so that 
+files within slick/bin/ will take precidence.
+
+::
+
+  $ . ./bin/activate
+  (slick)$ svn co http://svn.osafoundation.org/m2crypto/tags/0.19.1/ m2crypto
+  (slick)$ cd m2crypto
+  (slick)$ python setup.py build_ext -I/usr/include/openssl install
+  (slick)$ easy_install slick
+  (slick)$ deactivate
+
+Once the virtulenv is deactivated you can still run the command directly
+
+::
+  ./bin/slick-init
 
