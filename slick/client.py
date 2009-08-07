@@ -23,9 +23,7 @@ from optparse import OptionParser
 from urllib2 import urlparse
 import os, sys
 from os import path
-import pprint
 import logging
-import ConfigParser
 import struct, fcntl, termios
 
 from shibboleth import open_shibprotected_url, list_shibboleth_idps
@@ -169,7 +167,7 @@ def main():
             print "\nexport X509_USER_CERT=%s \nexport X509_USER_KEY=%s" % (cert_path, key_path)
             return
     except KeyboardInterrupt:
-        print "\nCanceled"
+        print "\Cancelled"
         return
 
     if len(sys.argv) == 1:

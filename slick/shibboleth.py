@@ -212,7 +212,7 @@ def run(idp, spURL, cm):
             log.info('Submitting IdP SAML form')
             request, response = submitFormToSP(opener, form, response)
             return response
-        raise("Uknown error: Shibboleth auth chain lead to nowhere")
+        raise("Unknown error: Shibboleth auth chain lead to nowhere")
 
 
 def list_idps(spURL):
@@ -226,7 +226,7 @@ def list_idps(spURL):
     type, form = whatForm(parser.forms)
     if type == 'wayf':
         return form['origin']
-    raise("Uknown error: Shibboleth auth chain lead to nowhere")
+    raise("Unknown error: Shibboleth auth chain lead to nowhere")
 
 
 def list_shibboleth_idps(sp):

@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ##############################################################################
-from urllib import urlencode, unquote_plus
+from urllib import urlencode
 import urllib2
 import xml.dom.minidom
 import logging
