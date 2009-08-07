@@ -62,7 +62,6 @@ class SmartRedirectHandler(HTTPRedirectHandler, HTTPBasicAuthHandler, HTTPCookie
                                           url, req, headers)
 
 
-
 class FormParser(HTMLParser):
 
     def __init__(self):
@@ -228,5 +227,19 @@ def list_idps(spURL):
     if type == 'wayf':
         return form['origin']
     raise("Uknown error: Shibboleth auth chain lead to nowhere")
+
+
+def list_shibboleth_idps(sp):
+    """
+    return a list of idps protecting a service provider.
+    """
+    return list_idps(sp)
+
+
+def open_shibprotected_url(idp, sp, cm):
+    """
+    return a urllib response from the service once shibboleth authentication is complete.
+    """
+    return run(idp, sp, cm)
 
 

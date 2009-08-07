@@ -28,7 +28,7 @@ import logging
 import ConfigParser
 import struct, fcntl, termios
 
-from shibboleth import run, list_idps
+from shibboleth import open_shibprotected_url, list_shibboleth_idps
 from cert import slcs
 from passmgr import CredentialManager
 from settings import Settings, settings_options
@@ -118,7 +118,7 @@ def main():
             log.debug("List IDPs")
             idp_search = options.idp_search.lower()
             slcs_login_url = urlparse.urljoin(spUri, 'login')
-            idps = list_idps(slcs_login_url)
+            idps = list_shibboleth_idps(slcs_login_url)
             idps = dict(filter(lambda item: idp_search in item[0].lower(),
                                idps.items()))
             idp_keys = idps.keys()
@@ -130,7 +130,7 @@ def main():
         if options.list:
             log.debug("List IDPs")
             slcs_login_url = urlparse.urljoin(spUri, 'login')
-            idps = list_idps(slcs_login_url)
+            idps = list_shibboleth_idps(slcs_login_url)
             idp_keys = idps.keys()
             idp_keys.sort()
             print_list_wide(idp_keys)
@@ -142,7 +142,7 @@ def main():
             print "Using IdP: %s" % idp
             slcs_login_url = spUri
             c = CredentialManager()
-            slcsresp = run(idp, slcs_login_url, c)
+            slcsresp = open_shibprotected_url(idp, slcs_login_url, c)
 
             log.info('Writing to files')
             key, pubKey, cert = slcs(slcsresp)
