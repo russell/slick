@@ -1,13 +1,16 @@
 from setuptools import setup, find_packages
 import sys, os
 
-version = '1.2'
+# Get version from common file
+execfile('slick/common.py')
+
 
 setup(name='slick',
       version=version,
       description="Commandline tool for generating and signing a SWITCH SLCS certificate.",
-      long_description=open(os.path.join("README")).read() + "\n" +
-                       open(os.path.join("CHANGES")).read(),
+      long_description=".. contents::\n\n" +
+                       open(os.path.join("docs","introduction.rst")).read() +
+                       "\n" + open(os.path.join("CHANGES")).read(),
       classifiers=[
         "Topic :: Security :: Cryptography",
         "Programming Language :: Python",

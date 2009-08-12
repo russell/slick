@@ -44,10 +44,10 @@ def settings_options(parser):
                       default="https://slcs1.arcs.org.au/SLCS/login")
 
 class Settings:
+    """
+    parse out the variables
+    """
     def __init__(self, options=None):
-        """
-        parse out the variables
-        """
 
         if not options:
             self.optparser = OptionParser()

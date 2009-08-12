@@ -29,19 +29,24 @@ log = logging.getLogger('slick-client')
 
 
 def parse_slcsResponse(response):
-    """
-    <?xml version="1.0" ?>
-    <SLCSLoginResponse>
-    <Status>Success</Status>
-    <AuthorizationToken>EKJH54HJKRT908YSEDJNQ23QLIUYIU2HWQWDB12IEGB12DAIKJAAPQ1</AuthorizationToken>
-    <CertificateRequest url="https://slcs1.arcs.org.au:443/SLCS/certificate">
-    <Subject>DC=slcs,DC=org,DC=au,O=Org,CN=Common Name Dlw349sKRMWOsokaA</Subject>
-    <CertificateExtension critical="false" name="ExtendedKeyUsage" oid="2.5.29.37">ClientAuth</CertificateExtension>
-    <CertificateExtension critical="true" name="KeyUsage" oid="2.5.29.15">DigitalSignature,KeyEncipherment</CertificateExtension>
-    <CertificateExtension critical="false" name="CertificatePolicies" oid="2.5.29.32">1.3.6.1.4.1.31863.1.0.1</CertificateExtension>
-    <CertificateExtension critical="false" name="SubjectAltName" oid="2.5.29.17">email:user@host.localdomain</CertificateExtension>
-    </CertificateRequest>
-    </SLCSLoginResponse>
+    """parse a SLCS response.
+
+    Example SLCS Response::
+
+        <?xml version="1.0" ?>
+        <SLCSLoginResponse>
+        <Status>Success</Status>
+        <AuthorizationToken>EKJH54HJKRT908YSEDJNQ23QLIUYIU2HWQWDB12IEGB12DAIKJAAPQ1</AuthorizationToken>
+        <CertificateRequest url="https://slcs1.arcs.org.au:443/SLCS/certificate">
+        <Subject>DC=slcs,DC=org,DC=au,O=Org,CN=Common Name Dlw349sKRMWOsokaA</Subject>
+        <CertificateExtension critical="false" name="ExtendedKeyUsage" oid="2.5.29.37">ClientAuth</CertificateExtension>
+        <CertificateExtension critical="true" name="KeyUsage" oid="2.5.29.15">DigitalSignature,KeyEncipherment</CertificateExtension>
+        <CertificateExtension critical="false" name="CertificatePolicies" oid="2.5.29.32">1.3.6.1.4.1.31863.1.0.1</CertificateExtension>
+        <CertificateExtension critical="false" name="SubjectAltName" oid="2.5.29.17">email:user@host.localdomain</CertificateExtension>
+        </CertificateRequest>
+        </SLCSLoginResponse>
+
+    :rtype: (token, dn, reqURL, extensions)
 
     """
     slcsRespDOM = xml.dom.minidom.parse(response)
@@ -61,6 +66,7 @@ def parse_slcsResponse(response):
 
 
 def parse_slcsCertResponse(response):
+    """parse a SLCS certificate response and either return the certificate or None"""
     dom = xml.dom.minidom.parse(response)
     status = dom.getElementsByTagName("Status")[0].childNodes[0].data
     if status == 'Error':
@@ -75,6 +81,7 @@ def parse_slcsCertResponse(response):
 
 
 def slcs(slcsResp):
+    """Take a response from a SLCS Login URL and return the cert,keys"""
     token, dn, reqURL, elements = parse_slcsResponse(slcsResp)
 
     certreq = CertificateRequest(dn=str(dn), extensions=elements)

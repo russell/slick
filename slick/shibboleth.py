@@ -46,6 +46,7 @@ class SmartRedirectHandler(HTTPRedirectHandler, HTTPBasicAuthHandler, HTTPCookie
     http_error_301 = http_error_303 = http_error_307 = http_error_302
 
     def http_error_401(self, req, fp, code, msg, headers):
+        """Basic Auth handler"""
         url = req.get_full_url()
         authline = headers.getheader('www-authenticate')
         authobj = re.compile(
@@ -108,6 +109,7 @@ class FormParser(HTMLParser):
 
 
 def submitWayfForm(idp, opener, data, res):
+    """submit WAYF form with IDP"""
     headers = {
     "Referer": res.url
     }
@@ -129,6 +131,7 @@ def submitWayfForm(idp, opener, data, res):
 
 
 def submitIdpForm(opener, title, data, res, cm):
+    """submit login form to IdP"""
     headers = {
     "Referer": res.url
     }
@@ -148,6 +151,7 @@ def submitIdpForm(opener, title, data, res, cm):
 
 
 def submitFormToSP(opener, data, res):
+    """submit IdP form to SP"""
     headers = {
     "Referer": res.url
     }
@@ -160,6 +164,7 @@ def submitFormToSP(opener, data, res):
 
 
 def whatForm(forms):
+    """try to guess what type of form we have encountered"""
     form_types = {'wayf': ['origin', 'providerId', 'shire', 'target', 'time'],
                   'login': ['j_password', 'j_username'],
                   'idp': ['SAMLResponse', 'TARGET'],
@@ -232,6 +237,9 @@ def list_idps(spURL):
 def list_shibboleth_idps(sp):
     """
     return a list of idps protecting a service provider.
+
+    :param sp: the URL of the service provider you want to connect to
+
     """
     return list_idps(sp)
 
@@ -239,6 +247,10 @@ def list_shibboleth_idps(sp):
 def open_shibprotected_url(idp, sp, cm):
     """
     return a urllib response from the service once shibboleth authentication is complete.
+
+    :param idp: the Identity Provider that will be selected at the WAYF
+    :param sp: the URL of the service provider you want to connect to
+    :param cm: a :class:`~slick.passmgr.CredentialManager` containing the URL to the service provider you want to connect to
     """
     return run(idp, sp, cm)
 

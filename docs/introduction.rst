@@ -1,6 +1,3 @@
-
-.. contents::
-
 Introduction
 ============
 
@@ -82,5 +79,6 @@ files within slick/bin/ will take precidence.
 Once the virtulenv is deactivated you can still run the command directly
 
 ::
+
   ./bin/slick-init
 

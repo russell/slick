@@ -1,6 +1,11 @@
 Changelog
 =========
 
+1.3 - Unrelased
+----------------
+* added generated sphinx documentation
+
+
 1.2 (2009-07-31)
 ----------------
 * Key is now stored with the mode 0600
