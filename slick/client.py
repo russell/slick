@@ -146,13 +146,21 @@ def main():
             key, pubKey, cert = slcs(slcsresp)
             key_path = path.join(options.store_dir, 'userkey.pem')
             if options.key:
-                key._key.save_pem(key_path,
-                                  callback=c.set_password)
+                def callback(verify=False):
+                    from getpass import getpass
+                    while 1:
+                        p1=getpass('Enter passphrase:')
+                        p2=getpass('Verify passphrase:')
+                        if not p1:
+                            print "Passphrase cannot be blank"
+                            continue
+                        if p1==p2:
+                            return p1
             else:
                 def callback(verify=False):
                     return c.get_password()
 
-                key._key.save_pem(key_path, callback=callback)
+            key._key.save_pem(key_path, callback=callback)
             os.chmod(key_path, 0600)
             cert_path = path.join(options.store_dir, 'usercert.pem')
             cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')
