@@ -77,6 +77,8 @@ parser.add_option("-w", "--write",
 parser.add_option("-v", "--verbose",
                   action="count",
                   help="print status messages to stdout")
+parser.add_option("-V", "--version", action='store_true',
+                  help="print version number and exit")
 
 # Set up a specific logger with our desired output level
 log = logging.getLogger('slick-client')
@@ -87,6 +89,11 @@ DEBUG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 def main():
     try:
         (options, args) = parser.parse_args()
+
+        if options.version:
+            from common import version
+            print version
+            return
 
         if not path.exists(options.store_dir):
             os.mkdir(options.store_dir)
