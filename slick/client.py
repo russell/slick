@@ -31,8 +31,6 @@ from cert import slcs
 from passmgr import CredentialManager
 from settings import Settings, settings_options
 
-homedir = os.getenv('USERPROFILE') or os.getenv('HOME')
-
 spUri = "https://slcs1.arcs.org.au/SLCS/login"
 
 
