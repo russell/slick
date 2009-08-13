@@ -33,6 +33,7 @@ class CredentialManager:
         self.password = None
 
     def get_password(self):
+        """return the password of the user"""
         if not self.password:
             self.set_password()
         return self.password
@@ -42,6 +43,9 @@ class CredentialManager:
             while 1:
                 p1=getpass('Enter password:')
                 p2=getpass('Verify password:')
+                if not p1:
+                    print "Password cannot be blank"
+                    continue
                 if p1==p2:
                     self.password = p1
                     break
