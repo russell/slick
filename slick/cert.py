@@ -27,6 +27,18 @@ from M2Crypto import X509
 
 log = logging.getLogger('slick-client')
 
+class SLCSException(Exception):
+    """Exception raised for returned from the SLCS server.
+
+    Attributes:
+        expression -- input expression in which the error occurred
+        message -- explanation of the error
+    """
+
+    def __init__(self, expression, message):
+        self.expression = expression
+        self.message = message
+
 
 def parse_slcsResponse(response):
     """parse a SLCS response.
@@ -74,7 +86,7 @@ def parse_slcsCertResponse(response):
         stack = dom.getElementsByTagName("StackTrace")[0].childNodes[0].data
         log.error(error)
         log.error(stack)
-        return
+        raise SLCSException(error, stack)
 
     cert = dom.getElementsByTagName("Certificate")[0].childNodes[0].data
     return cert
