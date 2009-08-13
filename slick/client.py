@@ -154,6 +154,7 @@ def main():
                             continue
                         if p1==p2:
                             return p1
+                        print "Password doesn't match"
             else:
                 def callback(verify=False):
                     return c.get_password()
@@ -170,7 +171,8 @@ def main():
                 log.info('Writing a config')
                 settings.save()
 
-            print "\nexport X509_USER_CERT=%s \nexport X509_USER_KEY=%s" % (cert_path, key_path)
+            print "\nexport X509_USER_CERT=%s\nexport X509_USER_KEY=%s" % \
+                    (cert_path, key_path)
             return
     except KeyboardInterrupt:
         print "\Cancelled"

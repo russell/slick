@@ -49,6 +49,7 @@ class CredentialManager:
                 if p1==p2:
                     self.password = p1
                     break
+                print "Password doesn't match"
         else:
             self.password = getpass("Password:")
         return self.password
