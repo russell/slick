@@ -25,6 +25,7 @@ import os, sys
 from os import path
 import logging
 import struct, fcntl, termios
+from cookielib import MozillaCookieJar
 
 from shibboleth import open_shibprotected_url, list_shibboleth_idps
 from cert import slcs
@@ -145,7 +146,8 @@ def main():
             print "Using IdP: %s" % idp
             slcs_login_url = spUri
             c = CredentialManager()
-            slcsresp = open_shibprotected_url(idp, slcs_login_url, c)
+            cj = MozillaCookieJar()
+            slcsresp = open_shibprotected_url(idp, slcs_login_url, c, cj)
 
             log.info('Writing to files')
             key, pubKey, cert = slcs(slcsresp)

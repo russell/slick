@@ -19,7 +19,7 @@
 #
 ##############################################################################
 
-import urllib2, urllib, cookielib
+import urllib2, urllib
 from HTMLParser import HTMLParser
 from urllib2 import HTTPCookieProcessor, HTTPRedirectHandler, urlparse
 from urllib2 import HTTPBasicAuthHandler
@@ -188,8 +188,8 @@ def whatForm(forms):
     return None, None
 
 
-def run(idp, spURL, cm):
-    cookiejar = cookielib.CookieJar()
+def run(idp, spURL, cm, cj):
+    cookiejar = cj
     opener = urllib2.build_opener(SmartRedirectHandler(credentialmanager=cm, cookiejar=cookiejar))
     request = urllib2.Request(spURL)
     log.debug("GET: %s" % request.get_full_url())
@@ -244,14 +244,15 @@ def list_shibboleth_idps(sp):
     return list_idps(sp)
 
 
-def open_shibprotected_url(idp, sp, cm):
+def open_shibprotected_url(idp, sp, cm, cj):
     """
     return a urllib response from the service once shibboleth authentication is complete.
 
     :param idp: the Identity Provider that will be selected at the WAYF
     :param sp: the URL of the service provider you want to connect to
     :param cm: a :class:`~slick.passmgr.CredentialManager` containing the URL to the service provider you want to connect to
+    :param cj: the cookie jar that will be used to store the shibboleth cookies
     """
-    return run(idp, sp, cm)
+    return run(idp, sp, cm, cj)
 
 
