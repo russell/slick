@@ -87,6 +87,9 @@ class Settings:
         except ConfigParser.NoOptionError:
             self.idp = None
 
+        if options.idp:
+            self.idp = options.idp
+
     def save(self):
         config = ConfigParser.ConfigParser()
         config.add_section('slcs')
