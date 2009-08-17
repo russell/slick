@@ -23,6 +23,7 @@ import urllib2, urllib
 from HTMLParser import HTMLParser
 from urllib2 import HTTPCookieProcessor, HTTPRedirectHandler, urlparse
 from urllib2 import HTTPBasicAuthHandler
+from time import time
 import logging
 import re
 
@@ -32,9 +33,9 @@ log = logging.getLogger('slick-client')
 
 class SmartRedirectHandler(HTTPRedirectHandler, HTTPBasicAuthHandler, HTTPCookieProcessor):
 
-    def __init__(self, credentialmanager=None, **kwargs):
+    def __init__(self, credentialmanager=None, cookiejar=None, **kwargs):
         HTTPBasicAuthHandler.__init__(self)
-        HTTPCookieProcessor.__init__(self, **kwargs)
+        HTTPCookieProcessor.__init__(self, cookiejar ,**kwargs)
         self.credentialmanager = credentialmanager
 
     def http_error_302(self, req, fp, code, msg, headers):
@@ -255,4 +256,10 @@ def open_shibprotected_url(idp, sp, cm, cj):
     """
     return run(idp, sp, cm, cj)
 
+
+def set_cookies_expiries(cookiejar):
+    """set the shibboleth session cookies to the default SP expiry"""
+    for cookie in cookiejar:
+        if cookie.name.startswith('_shibsession_') or cookie.name.startswith('_shibstate_'):
+            cookie.expires = int(time()) + 28800
 
