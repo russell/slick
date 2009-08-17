@@ -190,9 +190,45 @@ def whatForm(forms):
 
 
 def run(idp, spURL, cm, cj):
+    return open_shibprotected_url(idp, spURL, cm, cj)
+
+
+def list_idps(spURL):
+    return list_idps(spURL)
+
+
+def list_shibboleth_idps(sp):
+    """
+    return a list of idps protecting a service provider.
+
+    :param sp: the URL of the service provider you want to connect to
+
+    """
+    opener = urllib2.build_opener(SmartRedirectHandler())
+    request = urllib2.Request(sp)
+    log.debug("GET: %s" % request.get_full_url())
+    response = opener.open(request)
+    parser = FormParser()
+    for line in response:
+        parser.feed(line)
+    type, form = whatForm(parser.forms)
+    if type == 'wayf':
+        return form['origin']
+    raise("Unknown error: Shibboleth auth chain lead to nowhere")
+
+
+def open_shibprotected_url(idp, sp, cm, cj):
+    """
+    return a urllib response from the service once shibboleth authentication is complete.
+
+    :param idp: the Identity Provider that will be selected at the WAYF
+    :param sp: the URL of the service provider you want to connect to
+    :param cm: a :class:`~slick.passmgr.CredentialManager` containing the URL to the service provider you want to connect to
+    :param cj: the cookie jar that will be used to store the shibboleth cookies
+    """
     cookiejar = cj
     opener = urllib2.build_opener(SmartRedirectHandler(credentialmanager=cm, cookiejar=cookiejar))
-    request = urllib2.Request(spURL)
+    request = urllib2.Request(sp)
     log.debug("GET: %s" % request.get_full_url())
     response = opener.open(request)
 
@@ -217,44 +253,9 @@ def run(idp, spURL, cm, cj):
         if type == 'idp':
             log.info('Submitting IdP SAML form')
             request, response = submitFormToSP(opener, form, response)
+            set_cookies_expiries(cj)
             return response
         raise("Unknown error: Shibboleth auth chain lead to nowhere")
-
-
-def list_idps(spURL):
-    opener = urllib2.build_opener(SmartRedirectHandler())
-    request = urllib2.Request(spURL)
-    log.debug("GET: %s" % request.get_full_url())
-    response = opener.open(request)
-    parser = FormParser()
-    for line in response:
-        parser.feed(line)
-    type, form = whatForm(parser.forms)
-    if type == 'wayf':
-        return form['origin']
-    raise("Unknown error: Shibboleth auth chain lead to nowhere")
-
-
-def list_shibboleth_idps(sp):
-    """
-    return a list of idps protecting a service provider.
-
-    :param sp: the URL of the service provider you want to connect to
-
-    """
-    return list_idps(sp)
-
-
-def open_shibprotected_url(idp, sp, cm, cj):
-    """
-    return a urllib response from the service once shibboleth authentication is complete.
-
-    :param idp: the Identity Provider that will be selected at the WAYF
-    :param sp: the URL of the service provider you want to connect to
-    :param cm: a :class:`~slick.passmgr.CredentialManager` containing the URL to the service provider you want to connect to
-    :param cj: the cookie jar that will be used to store the shibboleth cookies
-    """
-    return run(idp, sp, cm, cj)
 
 
 def set_cookies_expiries(cookiejar):
