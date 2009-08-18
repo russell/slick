@@ -27,9 +27,8 @@ import logging
 import struct, fcntl, termios
 from cookielib import MozillaCookieJar
 
-from shibboleth import open_shibprotected_url, list_shibboleth_idps
+from arcs.shibboleth.client import open_shibprotected_url, list_shibboleth_idps, CredentialManager
 from cert import slcs
-from passmgr import CredentialManager
 from settings import Settings, settings_options
 
 spUri = "https://slcs1.arcs.org.au/SLCS/login"

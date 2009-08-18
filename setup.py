@@ -32,6 +32,7 @@ setup(name='slick',
       install_requires=[
           # -*- Extra requirements: -*-
           'arcs.gsi',
+          'arcs.shibboleth.client',
       ],
       entry_points="""
       # -*- Entry points: -*-
