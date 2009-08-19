@@ -3,33 +3,46 @@ Introduction
 
 This tool provides an easy way for users to retrieve their SLCS certificates from a SWITCH SLCS server.
 
-Usage
------
+slick-init Usage
+----------------
 
-Usage::
+.. program:: slick-init
 
-  $ slick-init --help
-  Usage: slick-init [options] [idp]
-  
-  Options:
-    -h, --help            show this help message and exit
-    -d DIR, --storedir=DIR
-                          the directory to store the certificate/key and
-                          config file
-    -i IDP, --idp=IDP     unique ID of the IdP used to log in
-    -s SLCS, --slcs=SLCS  location of SLCS server (if not specified, use
-                          SLCS_SERVER system variable or settings from
-                          [storedir]/slcs-client.properties
-    -f SEARCHSTRING, --find=SEARCHSTRING
-                          find IdP(s) whose name or unique ID contain a
-                          specified string
-    -k, --key             prompt for key-passphrase (use Shibboleth password
-                          by default)
-    -l, --list            list all available IdP(s)
-    -w, --write           write the arguments specified on the command line to
-                          a config file
-    -v, --verbose         print status messages to stdout
+.. cmdoption:: -d <dir>, --storedir=<dir>
 
+   the directory to store the certificate/key and config file.
+
+.. cmdoption:: -i <idp>, --idp=<idp>
+
+   the name of the IDP to use
+
+.. cmdoption:: -s <slcs>, --slcs=<slcs>
+
+    location of SLCS server (if not specified, use
+    SLCS_SERVER system variable or settings from
+    [storedir]/slcs-client.properties
+
+.. cmdoption:: -k, --key
+
+   prompt for key-passphrase (use Shibboleth password
+   by default)
+
+.. cmdoption:: -l, --list
+
+   list all available IdP(s
+
+.. cmdoption:: -w, --write
+
+   write the arguments specified on the command line to
+   a config file
+
+.. cmdoption:: -v, --verbose
+
+   print status messages to stdout
+
+.. cmdoption:: -h, --help
+
+   show the help message and exit
 
 
 Config File
