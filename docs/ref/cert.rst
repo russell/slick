@@ -12,6 +12,11 @@
 
 .. autofunction:: slcs
 
+.. exception:: slcs.cert.SLCSException
+
+   Exception raised when an error is returned from the SLCS server.
+
+
 .. seealso::
 
    Module :mod:`arcs.gsi.certificate`

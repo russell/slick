@@ -28,11 +28,10 @@ from M2Crypto import X509
 log = logging.getLogger('slick-client')
 
 class SLCSException(Exception):
-    """Exception raised for returned from the SLCS server.
+    """Exception raised when an error is returned from the SLCS server.
 
-    Attributes:
-        expression -- input expression in which the error occurred
-        message -- explanation of the error
+    .. attribute:: expression input expression in which the error occurred
+    .. attribute:: message explanation of the error
     """
 
     def __init__(self, expression, message):
