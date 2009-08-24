@@ -69,6 +69,8 @@ Ubuntu
 Centos5
 -------
 
+Change to a directory where you would install optional software. When using ``virutalenv`` a subdirectory will be created with it's own ``bin/`` ``lib/`` directories.
+
 ::
 
   $ yum install python-setuptools swig openssl-devel gcc subversion
