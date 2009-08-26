@@ -27,8 +27,8 @@ import logging
 import struct, fcntl, termios
 from cookielib import MozillaCookieJar
 
-from arcs.shibboleth.client import open_shibprotected_url, list_shibboleth_idps, CredentialManager
-from cert import slcs
+from arcs.shibboleth.client import open_shibprotected_url, list_shibboleth_idps, CredentialManager, Idp
+from arcs.gsi.slcs import slcs_handler as slcs
 from settings import Settings, settings_options
 
 spUri = "https://slcs1.arcs.org.au/SLCS/login"
@@ -140,48 +140,48 @@ def main():
             return
 
         # Cert cert using specific IdP
-        if args or config_idp:
-            idp = " ".join(args) or config_idp
-            print "Using IdP: %s" % idp
-            slcs_login_url = spUri
-            c = CredentialManager()
-            cj = MozillaCookieJar()
-            slcsresp = open_shibprotected_url(idp, slcs_login_url, c, cj)
+        idp = " ".join(args) or config_idp or ''
+        idp = Idp(idp)
+        print "Using IdP: %s" % idp
+        slcs_login_url = spUri
+        c = CredentialManager()
+        cj = MozillaCookieJar()
+        slcsresp = open_shibprotected_url(idp, slcs_login_url, c, cj)
 
-            log.info('Writing to files')
-            key, pubKey, cert = slcs(slcsresp)
-            key_path = path.join(options.store_dir, 'userkey.pem')
-            if options.key:
-                def callback(verify=False):
-                    from getpass import getpass
-                    while 1:
-                        p1=getpass('Enter passphrase:')
-                        p2=getpass('Verify passphrase:')
-                        if not p1:
-                            print "Passphrase cannot be blank"
-                            continue
-                        if p1==p2:
-                            return p1
-                        print "Password doesn't match"
-            else:
-                def callback(verify=False):
-                    return c.get_password()
+        log.info('Writing to files')
+        key, pubKey, cert = slcs(slcsresp)
+        key_path = path.join(options.store_dir, 'userkey.pem')
+        if options.key:
+            def callback(verify=False):
+                from getpass import getpass
+                while 1:
+                    p1=getpass('Enter passphrase:')
+                    p2=getpass('Verify passphrase:')
+                    if not p1:
+                        print "Passphrase cannot be blank"
+                        continue
+                    if p1==p2:
+                        return p1
+                    print "Password doesn't match"
+        else:
+            def callback(verify=False):
+                return c.get_password()
 
-            key._key.save_pem(key_path, callback=callback)
-            os.chmod(key_path, 0600)
-            cert_path = path.join(options.store_dir, 'usercert.pem')
-            cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')
-            cert_file.write(cert.as_pem())
-            cert_file.close()
-            os.chmod(cert_path, 0644)
+        key._key.save_pem(key_path, callback=callback)
+        os.chmod(key_path, 0600)
+        cert_path = path.join(options.store_dir, 'usercert.pem')
+        cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')
+        cert_file.write(cert.as_pem())
+        cert_file.close()
+        os.chmod(cert_path, 0644)
 
-            if options.write:
-                log.info('Writing a config')
-                settings.save()
+        if options.write:
+            log.info('Writing a config')
+            settings.save()
 
-            print "\nexport X509_USER_CERT=%s\nexport X509_USER_KEY=%s" % \
-                    (cert_path, key_path)
-            return
+        print "\nexport X509_USER_CERT=%s\nexport X509_USER_KEY=%s" % \
+                (cert_path, key_path)
+        return
     except KeyboardInterrupt:
         print "\Cancelled"
         return
