@@ -140,7 +140,7 @@ def main():
             return
 
         # Cert cert using specific IdP
-        idp = " ".join(args) or config_idp or ''
+        idp = " ".join(args) or config_idp
         idp = Idp(idp)
         print "Using IdP: %s" % idp
         slcs_login_url = spUri
