@@ -66,8 +66,7 @@ parser.add_option("-f", "--find", dest="idp_search",
                   specified string",
                   metavar="SEARCHSTRING")
 parser.add_option("-k", "--key", action='store_true',
-                  help="prompt for key-passphrase (use Shibboleth password \
-                  by default)")
+                  help="use Shibboleth password as key passphrase")
 parser.add_option("-l", "--list", action='store_true',
                   help="list all available IdP(s)")
 parser.add_option("-w", "--write",
@@ -151,16 +150,15 @@ def main():
         log.info('Writing to files')
         key, pubKey, cert = slcs(slcsresp)
         key_path = path.join(options.store_dir, 'userkey.pem')
-        if options.key:
+        if not options.key:
             def callback(verify=False):
                 from getpass import getpass
                 while 1:
-                    p1=getpass('Enter passphrase:')
+                    p1=getpass('Enter passphrase(or none for idp password):')
                     p2=getpass('Verify passphrase:')
-                    if not p1:
-                        print "Passphrase cannot be blank"
-                        continue
                     if p1==p2:
+                        if not p1:
+                            p1 = c.get_password()
                         return p1
                     print "Password doesn't match"
         else:
