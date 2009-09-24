@@ -27,7 +27,7 @@ import logging
 import struct, fcntl, termios
 from cookielib import MozillaCookieJar
 
-from arcs.shibboleth.client import open_shibprotected_url, list_shibboleth_idps, CredentialManager, Idp
+from arcs.shibboleth.client import Shibboleth, CredentialManager, Idp
 from arcs.gsi.slcs import slcs_handler as slcs
 from settings import Settings, settings_options
 
@@ -67,11 +67,9 @@ parser.add_option("-f", "--find", dest="idp_search",
                   metavar="SEARCHSTRING")
 parser.add_option("-k", "--key", action='store_true',
                   help="use Shibboleth password as key passphrase")
-parser.add_option("-l", "--list", action='store_true',
-                  help="list all available IdP(s)")
 parser.add_option("-w", "--write",
                   action="store_true",
-                  help="write the arguments specified on the command line to \
+                  help="write the idp specified on the command line to \
                   a config file")
 parser.add_option("-v", "--verbose",
                   action="count",
@@ -116,60 +114,39 @@ def main():
         spUri = settings.slcs
         config_idp = settings.idp
 
-        if options.idp_search:
-            log.debug("List IDPs")
-            idp_search = options.idp_search.lower()
-            slcs_login_url = urlparse.urljoin(spUri, 'login')
-            idps = list_shibboleth_idps(slcs_login_url)
-            idps = dict(filter(lambda item: idp_search in item[0].lower(),
-                               idps.items()))
-            idp_keys = idps.keys()
-            idp_keys.sort()
-            print_list_wide(idp_keys)
-            return
-
-        # List idps
-        if options.list:
-            log.debug("List IDPs")
-            slcs_login_url = urlparse.urljoin(spUri, 'login')
-            idps = list_shibboleth_idps(slcs_login_url)
-            idp_keys = idps.keys()
-            idp_keys.sort()
-            print_list_wide(idp_keys)
-            return
-
         # Cert cert using specific IdP
         idp = " ".join(args) or config_idp
         idp = Idp(idp)
-        print "Using IdP: %s" % idp
         slcs_login_url = spUri
         c = CredentialManager()
         cj = MozillaCookieJar()
-        slcsresp = open_shibprotected_url(idp, slcs_login_url, c, cj)
+        shibopener = Shibboleth(idp, c, cj)
+        slcsresp = shibopener.openurl(slcs_login_url)
 
         log.info('Writing to files')
-        key, pubKey, cert = slcs(slcsresp)
+        cert = slcs(slcsresp)
         key_path = path.join(options.store_dir, 'userkey.pem')
         if not options.key:
             def callback(verify=False):
                 from getpass import getpass
                 while 1:
                     p1=getpass('Enter passphrase(or none for idp password):')
+                    if not p1:
+                        p1 = c.get_password()
+                        return p1
                     p2=getpass('Verify passphrase:')
                     if p1==p2:
-                        if not p1:
-                            p1 = c.get_password()
                         return p1
                     print "Password doesn't match"
         else:
             def callback(verify=False):
                 return c.get_password()
 
-        key._key.save_pem(key_path, callback=callback)
+        cert.get_key()._key.save_pem(key_path, callback=callback)
         os.chmod(key_path, 0600)
         cert_path = path.join(options.store_dir, 'usercert.pem')
         cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')
-        cert_file.write(cert.as_pem())
+        cert_file.write(str(cert))
         cert_file.close()
         os.chmod(cert_path, 0644)
 

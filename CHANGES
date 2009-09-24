@@ -4,6 +4,9 @@ Changelog
 1.3 - Unrelased
 ----------------
 * added generated sphinx documentation
+* asks for passphrase by default
+* updated version of arcs.shibboleth.client that supports SWITCH Discovery Service.
+* removed search and list options for idps because that can now be done interactivly
 
 
 1.2 (2009-07-31)
