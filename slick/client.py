@@ -146,7 +146,7 @@ def main():
         os.chmod(key_path, 0600)
         cert_path = path.join(options.store_dir, 'usercert.pem')
         cert_file = open(path.join(options.store_dir, 'usercert.pem'), 'w')
-        cert_file.write(str(cert))
+        cert_file.write(repr(cert))
         cert_file.close()
         os.chmod(cert_path, 0644)
 
