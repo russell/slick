@@ -61,10 +61,6 @@ usage = "usage: %prog [options] [idp]"
 parser = OptionParser(usage)
 
 settings_options(parser)
-parser.add_option("-f", "--find", dest="idp_search",
-                  help="find IdP(s) whose name or unique ID contain a \
-                  specified string",
-                  metavar="SEARCHSTRING")
 parser.add_option("-k", "--key", action='store_true',
                   help="use Shibboleth password as key passphrase")
 parser.add_option("-w", "--write",
