@@ -31,8 +31,6 @@ from arcs.shibboleth.client import Shibboleth, CredentialManager, Idp
 from arcs.gsi.slcs import slcs_handler as slcs
 from settings import Settings, settings_options
 
-spUri = "https://slcs1.arcs.org.au/SLCS/login"
-
 
 def terminal_dimensions():
     fd = os.open(os.ctermid(), os.O_RDONLY)

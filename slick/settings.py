@@ -47,7 +47,7 @@ class Settings:
     """
     parse out the variables
     """
-    def __init__(self, options=None):
+    def __init__(self, options=None, config_file=None):
 
         if not options:
             self.optparser = OptionParser()
@@ -59,8 +59,11 @@ class Settings:
 
 
         self.config = ConfigParser.ConfigParser()
-        self.config_file = path.join(options.store_dir,
-                                     'slcs-client.properties')
+        if config_file:
+            self.config_file = config_file
+        else:
+            self.config_file = path.join(options.store_dir,
+                                         'slcs-client.properties')
         if path.exists(self.config_file):
             self.config.read(self.config_file)
         # add base section if it's missing
@@ -77,8 +80,11 @@ class Settings:
 
         if os.environ.get('SLCS_SERVER'):
             self.slcs = os.environ.get('SLCS_SERVER')
-        if options.slcs:
+        if options.slcs != self.optparser.get_default_values().slcs:
             self.slcs = options.slcs
+        if not self.slcs:
+            self.slcs = options.slcs
+
 
         try:
             self.idp = self.config.get('slcs', 'idp')
