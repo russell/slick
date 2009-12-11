@@ -21,7 +21,7 @@
 
 __docformat__ = 'restructuredtext'
 
-import os
+import os, sys
 
 import unittest
 from slick.settings import Settings
@@ -41,6 +41,8 @@ idp = TestIDP
                                      'test_settings.cfg'), 'w')
         cfg_file.write(cfg)
         cfg_file.close()
+
+        sys.argv = []
 
     def testLoadFromFile(self):
         settings = Settings(config_file=os.path.join(self.current_dir,
