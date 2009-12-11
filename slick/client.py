@@ -79,13 +79,12 @@ def main(*arg):
         else:
             logging.basicConfig(level=log_level)
 
-        settings = Settings(options)
+        settings = Settings(options, args)
         spUri = settings.slcs
         config_idp = settings.idp
 
         # Cert cert using specific IdP
-        idp = " ".join(args) or config_idp
-        idp = Idp(idp)
+        idp = Idp(config_idp)
         slcs_login_url = spUri
         c = CredentialManager()
         cj = MozillaCookieJar()

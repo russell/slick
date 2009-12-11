@@ -47,7 +47,7 @@ class Settings:
     """
     parse out the variables
     """
-    def __init__(self, options=None, config_file=None):
+    def __init__(self, options=None, args=None, config_file=None):
         self.optparser = OptionParser()
         settings_options(self.optparser)
 
@@ -95,6 +95,9 @@ class Settings:
 
         if options.idp:
             self.idp = options.idp
+        if not self.idp and " ".join(args):
+            self.idp = " ".join(args)
+
 
     def save(self):
         """
