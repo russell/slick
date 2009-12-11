@@ -48,10 +48,10 @@ class Settings:
     parse out the variables
     """
     def __init__(self, options=None, config_file=None):
+        self.optparser = OptionParser()
+        settings_options(self.optparser)
 
         if not options:
-            self.optparser = OptionParser()
-            settings_options(self.optparser)
             options, args = self.optparser.parse_args()
 
         if not path.exists(options.store_dir):

@@ -77,7 +77,7 @@ log_handle = logging.StreamHandler()
 DEBUG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 
 
-def main():
+def main(*arg):
     try:
         (options, args) = parser.parse_args()
 
