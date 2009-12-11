@@ -97,6 +97,9 @@ class Settings:
             self.idp = options.idp
 
     def save(self):
+        """
+        save the contents of the settings instance to a file
+        """
         config = ConfigParser.ConfigParser()
         config.add_section('slcs')
         if self.slcs and self.slcs != self.optparser.defaults['slcs']:

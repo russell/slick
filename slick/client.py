@@ -20,40 +20,15 @@
 ##############################################################################
 
 from optparse import OptionParser
-from urllib2 import urlparse
 import os, sys
 from os import path
 import logging
-import struct, fcntl, termios
 from cookielib import MozillaCookieJar
 
 from arcs.shibboleth.client import Shibboleth, CredentialManager, Idp
 from arcs.gsi.slcs import slcs_handler as slcs
-from settings import Settings, settings_options
+from slick.settings import Settings, settings_options
 
-
-def terminal_dimensions():
-    fd = os.open(os.ctermid(), os.O_RDONLY)
-    if not os.isatty(fd):
-        return (0,0)
-    return struct.unpack('hh', fcntl.ioctl(fd, termios.TIOCGWINSZ, '1234'))
-
-
-def print_list_wide(items):
-    lmax = max([len(x) for x in items]) + 1
-    width = terminal_dimensions()[1]
-    if width:
-        col = width/lmax
-        i = 1
-        for item in items:
-            if not i%col:
-                print item
-            else:
-                print item.ljust(lmax),
-            i = i + 1
-    else:
-        for item in items:
-            print item
 
 usage = "usage: %prog [options] [idp]"
 parser = OptionParser(usage)
@@ -82,7 +57,7 @@ def main(*arg):
         (options, args) = parser.parse_args()
 
         if options.version:
-            from common import version
+            from slick.common import version
             print version
             return
 
@@ -124,12 +99,12 @@ def main(*arg):
             def callback(verify=False):
                 from getpass import getpass
                 while 1:
-                    p1=getpass('Enter passphrase(or none for idp password):')
+                    p1 = getpass('Enter passphrase(or none for idp password):')
                     if not p1:
                         p1 = c.get_password()
                         return p1
-                    p2=getpass('Verify passphrase:')
-                    if p1==p2:
+                    p2 = getpass('Verify passphrase:')
+                    if p1 == p2:
                         return p1
                     print "Password doesn't match"
         else:
@@ -152,7 +127,7 @@ def main(*arg):
                 (cert_path, key_path)
         return
     except KeyboardInterrupt:
-        print "\Cancelled"
+        print "\nCancelled"
         return
 
     if len(sys.argv) == 1:
