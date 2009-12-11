@@ -51,6 +51,22 @@ idp = TestIDP
         self.failUnless(settings.slcs == "http://localhost",
                         "instead has value %s" % settings.slcs)
 
+    def testCommandLine(self):
+        sys.argv = ['./bin/slick-init', '-i', 'TestIDP-cl', '-s',
+                    'http://localhost-cl']
+        settings = Settings(config_file=os.path.join(self.current_dir,
+                                                     'test_settings.cfg'))
+        self.failUnless(settings.idp == "TestIDP-cl")
+        self.failUnless(settings.slcs == "http://localhost-cl",
+                        "instead has value %s" % settings.slcs)
+
+        sys.argv = ['./bin/slick-init', 'University', 'of', 'Testing']
+        settings = Settings(config_file=os.path.join(self.current_dir,
+                                                     'test_settings.cfg'))
+
+        self.failUnless(settings.idp == "University of Testing",
+                        'instead has value %s' % settings.idp)
+
     def tearDown(self):
         os.remove(os.path.join(self.current_dir, 'test_settings.cfg'))
 

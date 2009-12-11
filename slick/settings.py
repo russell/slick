@@ -95,7 +95,7 @@ class Settings:
 
         if options.idp:
             self.idp = options.idp
-        if not self.idp and " ".join(args):
+        if " ".join(args):
             self.idp = " ".join(args)
 
 
