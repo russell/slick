@@ -51,7 +51,7 @@ log = logging.getLogger('slick-client')
 log_handle = logging.StreamHandler()
 DEBUG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 
-
+print sys.argv
 def main(*arg):
     try:
         (options, args) = parser.parse_args()
