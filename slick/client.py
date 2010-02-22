@@ -90,6 +90,9 @@ def main(*arg):
         shibopener = Shibboleth(idp, c, cj)
         slcsresp = shibopener.openurl(slcs_login_url)
 
+        # Set the settings class idp to equal the idp handlers idp
+        settings.idp = idp.idp
+
         log.info('Writing to files')
         cert = slcs(slcsresp)
         key_path = path.join(options.store_dir, 'userkey.pem')
@@ -118,7 +121,7 @@ def main(*arg):
         os.chmod(cert_path, 0644)
 
         if options.write:
-            log.info('Writing a config')
+            log.info('Writing the config file')
             settings.save()
 
         print "\nexport X509_USER_CERT=%s\nexport X509_USER_KEY=%s" % \
