@@ -64,7 +64,7 @@ Ubuntu
 
   apt-get install python-setuptools python-m2crypto
 
-  easy_install --index-url http://code.arcs.org.au/pypi/ slick
+  easy_install --find-links 'http://code.arcs.org.au/pypi/slick/ http://code.arcs.org.au/pypi/arcs.shibboleth.client/ http://code.arcs.org.au/pypi/arcs.gsi/' slick
 
 Centos5
 -------
@@ -88,7 +88,7 @@ files within slick/bin/ will take precidence.
   (slick)$ svn co http://svn.osafoundation.org/m2crypto/tags/0.19.1/ m2crypto
   (slick)$ cd m2crypto
   (slick)$ python setup.py build_ext -I/usr/include/openssl install
-  (slick)$ easy_install slick
+  (slick)$ easy_install --find-links 'http://code.arcs.org.au/pypi/slick/ http://code.arcs.org.au/pypi/arcs.shibboleth.client/ http://code.arcs.org.au/pypi/arcs.gsi/' slick
   (slick)$ deactivate
 
 Once the virtulenv is deactivated you can still run the command directly
