@@ -25,7 +25,7 @@ import os, sys
 
 import unittest
 from slick.settings import Settings
-
+from StringIO import StringIO
 
 class testSettings(unittest.TestCase):
     """
@@ -33,13 +33,14 @@ class testSettings(unittest.TestCase):
     """
     def setUp(self):
         self.current_dir = os.path.dirname(__file__)
-        cfg = """[slcs]
+        self.cfg = """[slcs]
 url = http://localhost
 idp = TestIDP
+
 """
         cfg_file = open(os.path.join(self.current_dir,
                                      'test_settings.cfg'), 'w')
-        cfg_file.write(cfg)
+        cfg_file.write(self.cfg)
         cfg_file.close()
 
         sys.argv = []
@@ -50,6 +51,20 @@ idp = TestIDP
         self.failUnless(settings.idp == "TestIDP")
         self.failUnless(settings.slcs == "http://localhost",
                         "instead has value %s" % settings.slcs)
+
+    def testSaveToFile(self):
+        settings = Settings(config_file=os.path.join(self.current_dir,
+                                                     'test_settings.cfg'))
+        self.failUnless(settings.idp == "TestIDP")
+        self.failUnless(settings.slcs == "http://localhost",
+                        "instead has value %s" % settings.slcs)
+
+        out = StringIO()
+        settings.save(out)
+        out.seek(0)
+        contents = ''.join(out.readlines())
+        self.failUnless(contents == self.cfg,
+                        "contents has value %s" % repr(contents))
 
     def testCommandLine(self):
         sys.argv = ['./bin/slick-init', '-i', 'TestIDP-cl', '-s',

@@ -21,7 +21,7 @@
 
 import os
 from os import path
-from optparse import OptionParser
+from optparse import OptionParser, OptionGroup
 import ConfigParser
 
 homedir = os.getenv('USERPROFILE') or os.getenv('HOME')
@@ -35,24 +35,38 @@ def settings_options(parser):
                       config file",
                       metavar="DIR",
                       default=path.join(homedir, ".globus-slcs"))
-    parser.add_option("-i", "--idp",
-                      help="unique ID of the IdP used to log in")
-    parser.add_option("-s", "--slcs",
-                      help="location of SLCS server (if not specified, use \
-                      SLCS_SERVER system variable or settings from \
-                      [storedir]/slcs-client.properties",
-                      default="https://slcs1.arcs.org.au/SLCS/login")
+
+    slcs = OptionGroup(parser, "SLCS Options",)
+    slcs.add_option("-i", "--idp",
+                    dest='slcs_idp',
+                    help="unique ID of the IdP used to log in")
+    slcs.add_option("-s", "--slcs",
+                    help="location of SLCS server (if not specified, use \
+                    SLCS_SERVER system variable or settings from \
+                    [storedir]/slcs-client.properties",
+                    dest='slcs_url',
+                    default="https://slcs1.arcs.org.au/SLCS/login")
+    parser.add_option_group(slcs)
+
 
 class Settings:
     """
     parse out the variables
     """
+    env = {
+        'slcs_url': 'SLCS_SERVER',
+        'slcs_idp': 'SLCS_IDP',
+    }
+
     def __init__(self, options=None, args=None, config_file=None):
         self.optparser = OptionParser()
         settings_options(self.optparser)
 
         if not options:
             options, args = self.optparser.parse_args()
+
+        self.options = options
+        self.optargs = args
 
         if not path.exists(options.store_dir):
             os.mkdir(options.store_dir)
@@ -71,48 +85,62 @@ class Settings:
             self.config.add_section('slcs')
 
         # Read SP urls
+        self.slcs_url = self.get('slcs', 'url')
+
+        # read idp
+        self.slcs_idp = self.get('slcs', 'idp')
+
+    def get(self, *args):
+        """
+        get a value from the configuration
+        """
+        opt = '_'.join(args)
+        default = self.optparser.defaults[opt]
+
+        # parse env variables
+        if self.env.has_key(opt):
+            if os.environ.get(self.env[opt]):
+                return os.environ.get(self.env[opt])
+
+        if getattr(self.options, opt) != default:
+            return getattr(self.options, opt)
+
+        if opt == 'slcs_idp':
+            if " ".join(self.optargs):
+                return " ".join(self.optargs)
+
+        # parse config
         try:
-            self.slcs = self.config.get('slcs', 'url')
+            return self.config.get(*args)
         except ConfigParser.NoSectionError:
-            self.slcs = ''
+            return default
         except ConfigParser.NoOptionError:
-            self.slcs = ''
-
-        if os.environ.get('SLCS_SERVER'):
-            self.slcs = os.environ.get('SLCS_SERVER')
-        if options.slcs != self.optparser.get_default_values().slcs:
-            self.slcs = options.slcs
-        if not self.slcs:
-            self.slcs = options.slcs
+            return default
 
 
-        try:
-            self.idp = self.config.get('slcs', 'idp')
-        except ConfigParser.NoSectionError:
-            self.idp = None
-        except ConfigParser.NoOptionError:
-            self.idp = None
-
-        if options.idp:
-            self.idp = options.idp
-        if " ".join(args):
-            self.idp = " ".join(args)
-
-
-    def save(self):
+    def save(self, configfile=None):
         """
         save the contents of the settings instance to a file
         """
         config = ConfigParser.ConfigParser()
         config.add_section('slcs')
-        if self.slcs and self.slcs != self.optparser.defaults['slcs']:
-            config.set('slcs', 'url', self.slcs)
-        if self.idp and self.idp != self.optparser.defaults['idp']:
-            config.set('slcs', 'idp', self.idp)
+
+        def set_config(*args):
+            opt = '_'.join(args)
+            default = self.optparser.defaults[opt]
+            if getattr(self, opt) and getattr(self, opt) != default:
+                sect, option = args
+                config.set(sect, option, getattr(self, opt))
+
+        set_config('slcs', 'url')
+        set_config('slcs', 'idp')
 
         # Writing our configuration file to 'example.cfg'
-        configfile = open(self.config_file, 'wb')
-        config.write(configfile)
-        configfile.close()
+        if not configfile:
+            configfile = open(self.config_file, 'wb')
+            config.write(configfile)
+            configfile.close()
+        else:
+            config.write(configfile)
 
 

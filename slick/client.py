@@ -79,8 +79,8 @@ def main(*arg):
             logging.basicConfig(level=log_level)
 
         settings = Settings(options, args)
-        spUri = settings.slcs
-        config_idp = settings.idp
+        spUri = settings.slcs_url
+        config_idp = settings.slcs_idp
 
         # Cert cert using specific IdP
         idp = Idp(config_idp)
@@ -91,7 +91,7 @@ def main(*arg):
         slcsresp = shibopener.openurl(slcs_login_url)
 
         # Set the settings class idp to equal the idp handlers idp
-        settings.idp = idp.idp
+        settings.slcs_idp = idp.idp
 
         log.info('Writing to files')
         cert = slcs(slcsresp)
