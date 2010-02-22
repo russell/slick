@@ -1,3 +1,2 @@
 include CHANGES COPYING TODO
-include docs/*.rst
-recursive-include *.rst
+recursive-include docs *.rst
