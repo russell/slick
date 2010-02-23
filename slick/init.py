@@ -37,11 +37,6 @@ usage = "usage: %prog [options] [idp]"
 parser = OptionParser(usage)
 
 settings_options(parser)
-parser.add_option("-d", "--storedir", dest="store_dir",
-                  help="the directory to store the certificate/key and \
-                  config file",
-                  metavar="DIR",
-                  default=path.join(homedir, ".globus-slcs"))
 parser.add_option("-c", "--proxy", action='store_true',
                   default=False,
                   help="create a local 12 hour proxy.")
