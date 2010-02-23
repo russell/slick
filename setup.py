@@ -37,6 +37,6 @@ setup(name='slick',
       entry_points="""
       # -*- Entry points: -*-
       [console_scripts]
-      slick-init = slick.client:main
+      slick-init = slick.init:main
       """,
       )

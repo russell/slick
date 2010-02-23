@@ -23,17 +23,28 @@ from optparse import OptionParser
 import os, sys
 from os import path
 import logging
+import tempfile
 from cookielib import MozillaCookieJar
 
 from arcs.shibboleth.client import Shibboleth, CredentialManager, Idp
+from arcs.gsi.proxy import ProxyCertificate
 from arcs.gsi.slcs import slcs_handler as slcs
 from slick.settings import Settings, settings_options
 
+homedir = os.getenv('USERPROFILE') or os.getenv('HOME')
 
 usage = "usage: %prog [options] [idp]"
 parser = OptionParser(usage)
 
 settings_options(parser)
+parser.add_option("-d", "--storedir", dest="store_dir",
+                  help="the directory to store the certificate/key and \
+                  config file",
+                  metavar="DIR",
+                  default=path.join(homedir, ".globus-slcs"))
+parser.add_option("-c", "--proxy", action='store_true',
+                  default=False,
+                  help="create a local 12 hour proxy.")
 parser.add_option("-k", "--key", action='store_true',
                   help="use Shibboleth password as key passphrase")
 parser.add_option("-w", "--write",
@@ -47,9 +58,10 @@ parser.add_option("-V", "--version", action='store_true',
                   help="print version number and exit")
 
 # Set up a specific logger with our desired output level
-log = logging.getLogger('slick-client')
+log = logging.getLogger('slick-init')
 log_handle = logging.StreamHandler()
 DEBUG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
+
 
 def main(*arg):
     try:
@@ -126,6 +138,17 @@ def main(*arg):
 
         print "\nexport X509_USER_CERT=%s\nexport X509_USER_KEY=%s" % \
                 (cert_path, key_path)
+
+        if options.proxy:
+            p = ProxyCertificate(cert)
+            proxy_path = path.join(tempfile.gettempdir(), 'x509up_u' + str(os.getuid()))
+            proxy_file = open(proxy_path, 'w')
+            proxy_file.write(repr(p))
+            proxy_file.write(str(p._proxy.get_key()))
+            proxy_file.write(repr(cert))
+            proxy_file.close()
+            os.chmod(proxy_path, 0600)
+
         return
     except KeyboardInterrupt:
         print "\nCancelled"
