@@ -84,6 +84,13 @@ def main(*arg):
 
         settings = Settings(options, args)
 
+        # check that we can complete all the reqiuested operations with the
+        # supplied information.
+        if settings.slick_myproxy:
+            if not (settings.myproxy_host and settings.myproxy_port and settings.myproxy_user):
+                print "You haven't sepcified enough information to enable myproxy connection."
+                return
+
         # Cert cert using specific IdP
         idp = Idp(settings.slcs_idp)
         c = CredentialManager()
@@ -138,6 +145,28 @@ def main(*arg):
             proxy_file.close()
             os.chmod(proxy_path, 0600)
 
+        if settings.slick_myproxy:
+            if settings.myproxy_host and settings.myproxy_port and settings.myproxy_user:
+                from myproxy import client
+                c = client.MyProxyClient(hostname=settings.myproxy_host,
+                                         port= settings.myproxy_port,
+                                         serverDN='')
+                username = settings.myproxy_user
+                def callback(verify=False):
+                    from getpass import getpass
+                    while 1:
+                        p1 = getpass('Enter passphrase:')
+                        if not p1:
+                            p1 = c.get_password()
+                            return p1
+                        p2 = getpass('Verify passphrase:')
+                        if p1 == p2:
+                            return p1
+                        print "Password doesn't match"
+                passphrase = callback()
+                c.put(username, passphrase, cert, cert.get_key()._key, lambda *a: '', retrievers='*')
+            else:
+                print "Not enough info was passed to connect to a myproxy server"
         return
     except KeyboardInterrupt:
         print "\nCancelled"

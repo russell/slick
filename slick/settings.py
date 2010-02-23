@@ -51,6 +51,28 @@ def settings_options(parser):
                     default="https://slcs1.arcs.org.au/SLCS/login")
     parser.add_option_group(slcs)
 
+    mp = OptionGroup(parser, "MyProxy Options",)
+    mp.add_option("-a", "--myproxy-autostore",
+                  dest='slick_myproxy',
+                  default=False,
+                  action="store_true",
+                  help="upload the proxy to myproxy each time.")
+    mp.add_option("-u", "--myproxy-user",
+                  dest='myproxy_user',
+                  help="the username to connect to the myproxy server as.")
+    mp.add_option("-m", "--myproxy-host",
+                  dest='myproxy_host',
+                  default='myproxy.arcs.org.au',
+                  help="the hostname of the myproxy server")
+    mp.add_option("-p", "--myproxy-port",
+                  dest='myproxy_port',
+                  default='7512',
+                  help="the port of the myproxy server")
+    mp.add_option("-l", "--myproxy-lifetime",
+                  dest='myproxy_lifetime',
+                  help="the lifetime of the certificate to put in myproxy")
+    parser.add_option_group(mp)
+
 
 class Settings:
     """
@@ -59,6 +81,10 @@ class Settings:
     env = {
         'slcs_url': 'SLCS_SERVER',
         'slcs_idp': 'SLCS_IDP',
+        'myproxy_user': 'MYPROXY_USER',
+        'myproxy_host': 'MYPROXY_HOST',
+        'myproxy_port': 'MYPROXY_PORT',
+        'myproxy_lifetime': 'MYPROXY_LIFETIME',
     }
 
     def __init__(self, options=None, args=None, config_file=None):
@@ -84,11 +110,17 @@ class Settings:
         if path.exists(self.config_file):
             self.config.read(self.config_file)
 
-        # Read SP urls
-        self.slcs_url = self.get('slcs', 'url')
+        self.slick_proxy = self.get('slick', 'proxy')
+        self.slick_myproxy = self.get('slick', 'myproxy')
 
-        # read idp
+        self.slcs_url = self.get('slcs', 'url')
         self.slcs_idp = self.get('slcs', 'idp')
+
+        self.myproxy_user = self.get('myproxy', 'user')
+        self.myproxy_host = self.get('myproxy', 'host')
+        self.myproxy_port = self.get('myproxy', 'port')
+        self.myproxy_lifetime = self.get('myproxy', 'lifetime')
+
 
     def get(self, *args):
         """

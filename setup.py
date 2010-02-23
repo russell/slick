@@ -33,6 +33,7 @@ setup(name='slick',
           # -*- Extra requirements: -*-
           'arcs.gsi',
           'arcs.shibboleth.client',
+          'MyProxyClient',
       ],
       entry_points="""
       # -*- Entry points: -*-
