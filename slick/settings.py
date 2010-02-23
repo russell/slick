@@ -79,9 +79,6 @@ class Settings:
                                          'slcs-client.properties')
         if path.exists(self.config_file):
             self.config.read(self.config_file)
-        # add base section if it's missing
-        if not self.config.has_section('slcs'):
-            self.config.add_section('slcs')
 
         # Read SP urls
         self.slcs_url = self.get('slcs', 'url')
@@ -93,15 +90,30 @@ class Settings:
         """
         get a value from the configuration
         """
+
         opt = '_'.join(args)
         default = self.optparser.defaults[opt]
 
         if getattr(self.options, opt) != default:
+            sect, option = args
+            # add base section if it's missing
+            if not self.config.has_section(sect):
+                self.config.add_section(sect)
+
+            self.config.set(sect, option, getattr(self.options, opt))
             return getattr(self.options, opt)
 
         if opt == 'slcs_idp':
             if " ".join(self.optargs):
-                return " ".join(self.optargs)
+                sect, option = args
+
+                # add base section if it's missing
+                if not self.config.has_section(sect):
+                    self.config.add_section(sect)
+
+                idp = " ".join(self.optargs)
+                self.config.set(sect, option, idp)
+                return idp
 
         # parse env variables
         if self.env.has_key(opt):
@@ -121,18 +133,7 @@ class Settings:
         """
         save the contents of the settings instance to a file
         """
-        config = ConfigParser.ConfigParser()
-        config.add_section('slcs')
-
-        def set_config(*args):
-            opt = '_'.join(args)
-            default = self.optparser.defaults[opt]
-            if getattr(self, opt) and getattr(self, opt) != default:
-                sect, option = args
-                config.set(sect, option, getattr(self, opt))
-
-        set_config('slcs', 'url')
-        set_config('slcs', 'idp')
+        config = self.config
 
         # Writing our configuration file to 'example.cfg'
         if not configfile:
