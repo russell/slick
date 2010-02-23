@@ -91,17 +91,17 @@ class Settings:
         opt = '_'.join(args)
         default = self.optparser.defaults[opt]
 
-        # parse env variables
-        if self.env.has_key(opt):
-            if os.environ.get(self.env[opt]):
-                return os.environ.get(self.env[opt])
-
         if getattr(self.options, opt) != default:
             return getattr(self.options, opt)
 
         if opt == 'slcs_idp':
             if " ".join(self.optargs):
                 return " ".join(self.optargs)
+
+        # parse env variables
+        if self.env.has_key(opt):
+            if os.environ.get(self.env[opt]):
+                return os.environ.get(self.env[opt])
 
         # parse config
         try:
