@@ -48,16 +48,16 @@ idp = TestIDP
     def testLoadFromFile(self):
         settings = Settings(config_file=os.path.join(self.current_dir,
                                                      'test_settings.cfg'))
-        self.failUnless(settings.idp == "TestIDP")
-        self.failUnless(settings.slcs == "http://localhost",
-                        "instead has value %s" % settings.slcs)
+        self.failUnless(settings.slcs_idp == "TestIDP")
+        self.failUnless(settings.slcs_url == "http://localhost",
+                        "instead has value %s" % settings.slcs_url)
 
     def testSaveToFile(self):
         settings = Settings(config_file=os.path.join(self.current_dir,
                                                      'test_settings.cfg'))
-        self.failUnless(settings.idp == "TestIDP")
-        self.failUnless(settings.slcs == "http://localhost",
-                        "instead has value %s" % settings.slcs)
+        self.failUnless(settings.slcs_idp == "TestIDP")
+        self.failUnless(settings.slcs_url == "http://localhost",
+                        "instead has value %s" % settings.slcs_url)
 
         out = StringIO()
         settings.save(out)
@@ -71,16 +71,16 @@ idp = TestIDP
                     'http://localhost-cl']
         settings = Settings(config_file=os.path.join(self.current_dir,
                                                      'test_settings.cfg'))
-        self.failUnless(settings.idp == "TestIDP-cl")
-        self.failUnless(settings.slcs == "http://localhost-cl",
-                        "instead has value %s" % settings.slcs)
+        self.failUnless(settings.slcs_idp == "TestIDP-cl")
+        self.failUnless(settings.slcs_url == "http://localhost-cl",
+                        "instead has value %s" % settings.slcs_url)
 
         sys.argv = ['./bin/slick-init', 'University', 'of', 'Testing']
         settings = Settings(config_file=os.path.join(self.current_dir,
                                                      'test_settings.cfg'))
 
-        self.failUnless(settings.idp == "University of Testing",
-                        'instead has value %s' % settings.idp)
+        self.failUnless(settings.slcs_idp == "University of Testing",
+                        'instead has value %s' % settings.slcs_idp)
 
     def tearDown(self):
         os.remove(os.path.join(self.current_dir, 'test_settings.cfg'))
