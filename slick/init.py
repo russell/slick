@@ -37,9 +37,6 @@ usage = "usage: %prog [options] [idp]"
 parser = OptionParser(usage)
 
 settings_options(parser)
-parser.add_option("-c", "--proxy", action='store_true',
-                  default=False,
-                  help="create a local 12 hour proxy.")
 parser.add_option("-k", "--key", action='store_true',
                   help="use Shibboleth password as key passphrase")
 parser.add_option("-w", "--write",
@@ -86,16 +83,13 @@ def main(*arg):
             logging.basicConfig(level=log_level)
 
         settings = Settings(options, args)
-        spUri = settings.slcs_url
-        config_idp = settings.slcs_idp
 
         # Cert cert using specific IdP
-        idp = Idp(config_idp)
-        slcs_login_url = spUri
+        idp = Idp(settings.slcs_idp)
         c = CredentialManager()
         cj = MozillaCookieJar()
         shibopener = Shibboleth(idp, c, cj)
-        slcsresp = shibopener.openurl(slcs_login_url)
+        slcsresp = shibopener.openurl(settings.slcs_url)
 
         # Set the settings class idp to equal the idp handlers idp
         settings.slcs_idp = idp.idp
@@ -134,7 +128,7 @@ def main(*arg):
         print "\nexport X509_USER_CERT=%s\nexport X509_USER_KEY=%s" % \
                 (cert_path, key_path)
 
-        if options.proxy:
+        if settings.slick_proxy:
             p = ProxyCertificate(cert)
             proxy_path = path.join(tempfile.gettempdir(), 'x509up_u' + str(os.getuid()))
             proxy_file = open(proxy_path, 'w')

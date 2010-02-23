@@ -30,11 +30,15 @@ store_dir = path.join(homedir, ".globus-slcs")
 
 def settings_options(parser):
     """adds extra options to the optparser"""
+    parser.add_option("-c", "--proxy", action='store_true',
+                      default=False,
+                      dest='slick_proxy',
+                      help="create a local 12 hour proxy.")
     parser.add_option("-d", "--storedir", dest="store_dir",
-                    help="the directory to store the certificate/key and \
-                    config file",
-                    metavar="DIR",
-                    default=path.join(homedir, ".globus-slcs"))
+                      help="the directory to store the certificate/key and \
+                      config file",
+                      metavar="DIR",
+                      default=path.join(homedir, ".globus-slcs"))
     slcs = OptionGroup(parser, "SLCS Options",)
     slcs.add_option("-i", "--idp",
                     dest='slcs_idp',
