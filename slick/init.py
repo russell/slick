@@ -164,7 +164,7 @@ def main(*arg):
                             return p1
                         print "Password doesn't match"
                 passphrase = callback()
-                c.put(username, passphrase, cert, cert.get_key()._key, lambda *a: '', retrievers='*')
+                c.put(username, passphrase, cert, cert.get_key()._key, lambda *a: '', cert, cert.get_key()._key, lambda *a: '', retrievers='*')
             else:
                 print "Not enough info was passed to connect to a myproxy server"
         return
